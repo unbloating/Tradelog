@@ -81,14 +81,33 @@ function renderTrades(){
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 
-$("#saveProfile").onclick=()=>{
+async function loadProfile(){
+  const session=await refreshAuth();
+  if(!session)return;
+  const {data,error}=await supabaseClient.from("profiles").select("username,bio").eq("id",session.user.id).maybeSingle();
+  if(error){toast("Profile load failed: "+error.message);return}
+  if(data){
+    const fields=document.querySelectorAll("#profile input,#profile textarea");
+    if(fields[0])fields[0].value=data.username||"yourname";
+    if(fields[1])fields[1].value=data.bio||"";
+    document.querySelector("#profile h2").textContent="@"+(data.username||"yourname");
+  }
+}
+$("#saveProfile").onclick=async()=>{
+  const session=await refreshAuth();
+  if(!session){toast("Sign in to save your profile.");return}
   const fields=document.querySelectorAll("#profile input,#profile textarea");
-  state.profile.username=fields[0].value.trim()||"yourname";state.profile.bio=fields[1].value.trim();
-  persist();document.querySelector("#profile h2").textContent="@"+state.profile.username;toast("Profile saved on this device.");
+  const username=fields[0].value.trim()||"yourname",bio=fields[1].value.trim();
+  const {error}=await supabaseClient.from("profiles").upsert({id:session.user.id,username,bio,is_public:true},{onConflict:"id"});
+  if(error){toast("Profile save failed: "+error.message);return}
+  state.profile.username=username;state.profile.bio=bio;persist();
+  document.querySelector("#profile h2").textContent="@"+username;
+  toast("Profile saved to your account.");
 };
 (function restore(){
   if(state.profile){const fields=document.querySelectorAll("#profile input,#profile textarea");if(fields[0])fields[0].value=state.profile.username||"yourname";if(fields[1])fields[1].value=state.profile.bio||"Process over prediction.";document.querySelector("#profile h2").textContent="@"+(state.profile.username||"yourname")}
   renderTrades();
   loadCloudTrades();
+  loadProfile();
 })();
 </script></body></html>
