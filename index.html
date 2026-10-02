@@ -20,7 +20,7 @@ body{overflow-x:hidden}.app{min-height:100vh;background:radial-gradient(circle a
 <style>
 .startup-splash{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;transition:opacity .38s cubic-bezier(.22,1,.36,1),visibility .38s}
 .startup-splash.hide{opacity:0;visibility:hidden;pointer-events:none}
-.startup-logo{position:relative;width:280px;height:280px;display:grid;place-items:center;opacity:0;transform:scale(.92);animation:startLogo .68s cubic-bezier(.16,1,.3,1) .04s forwards}
+.startup-logo{position:relative;width:min(78vw,560px);height:min(78vw,560px);display:grid;place-items:center;opacity:0;transform:scale(.92);animation:startLogo .68s cubic-bezier(.16,1,.3,1) .04s forwards}
 .startup-logo img{display:block;width:100%;height:100%;object-fit:contain}
 .startup-name{display:none}
 @keyframes startLogo{to{opacity:1;transform:scale(1)}}
@@ -28,7 +28,7 @@ body{overflow-x:hidden}.app{min-height:100vh;background:radial-gradient(circle a
 @media(prefers-reduced-motion:reduce){.startup-logo,.startup-name{animation:none;opacity:1;transform:none}}
 </style></head>
 <body>
-<div class="startup-splash" id="startupSplash" aria-hidden="true"><div class="startup-logo"><img src="apple-touch-icon.png?v=4" alt="TradeLog logo"></div></div><div class="app" id="app">
+<div class="startup-splash" id="startupSplash" aria-hidden="true"><div class="startup-logo"><img src="tradelog-splash.svg?v=1" alt="TradeLog logo"></div></div><div class="app" id="app">
 <header class="top"><div class="brand"><div class="logo"><img src="apple-touch-icon.png" alt="TradeLog logo"></div><span>TradeLog</span></div><nav class="nav"><button class="active" data-view="dashboard">Dashboard</button><button data-view="journal">Journal</button><button data-view="strategies">Strategies</button><button data-view="templates">Templates</button><button data-view="profile">Profile</button><button data-view="chats">Chats</button></nav><div><button class="btn" id="dmBtn" type="button">💬 DMs</button><button class="btn" id="authBtn">Sign in</button><button class="iconbtn" id="themeBtn">◐</button><button class="iconbtn" id="settingsBtn">⚙</button></div></header>
 <dialog id="templateEditor" class="template-editor">
   <div class="template-editor-head"><div><div class="eyebrow">Template Studio</div><b id="templateEditorTitle">Create template</b></div><button class="auth-close" id="templateClose" type="button">×</button></div>
