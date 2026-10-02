@@ -87,7 +87,8 @@ const recommendedTemplates=[
 let editingTemplate=null,templateBgImage="";
 function templateFont(v){return v==="serif"?"Georgia,serif":v==="mono"?"ui-monospace,SFMono-Regular,Menlo,monospace":v==="rounded"?"Arial Rounded MT Bold,ui-rounded,system-ui,sans-serif":"Inter,ui-sans-serif,system-ui,sans-serif"}
 function templateBackground(t){
- if(templateBgImage)return "url('"+templateBgImage+"')";
+ const image=t.image||templateBgImage;
+ if(image)return "url('"+image+"')";
  if(t.style==="gradient")return "linear-gradient(135deg,"+t.bg+","+t.accent+"55)";
  if(t.style==="mesh")return "radial-gradient(circle at 20% 20%,"+t.accent+"99,transparent 32%),radial-gradient(circle at 80% 75%,"+t.accent+"55,transparent 35%),"+t.bg;
  return t.bg;
@@ -110,7 +111,7 @@ function renderMyTemplates(){
  const box=$("#myTemplateGallery"),items=JSON.parse(localStorage.getItem("tradelog:templates")||"[]");
  if(!items.length){box.innerHTML="<div class='muted'>No custom templates yet. Create one above.</div>";return}
  box.innerHTML=items.map((t,i)=>"<div class='template-card'><div class='template-preview' style='background:"+templateBackground(t)+";color:"+t.text+";font-family:"+templateFont(t)+"'><div class='preview-title'>"+escapeHtml(t.title)+"</div><div class='preview-sub'>"+escapeHtml(t.sub)+"</div></div><div class='template-info'><b>"+escapeHtml(t.name)+"</b><p>Custom template</p><div class='template-actions'><button class='btn' data-my-edit='"+i+"'>Edit</button><button class='btn' data-my-delete='"+i+"'>Delete</button></div></div></div>").join("");
- box.querySelectorAll("[data-my-edit]").forEach(b=>b.onclick=()=>openTemplateEditor(items[+b.dataset.myEdit]));
+ box.querySelectorAll("[data-my-edit]").forEach(b=>b.onclick=()=>openTemplateEditor({...items[+b.dataset.myEdit],savedIndex:+b.dataset.myEdit}));
  box.querySelectorAll("[data-my-delete]").forEach(b=>b.onclick=()=>{items.splice(+b.dataset.myDelete,1);localStorage.setItem("tradelog:templates",JSON.stringify(items));renderMyTemplates();toast("Template deleted.");});
 }
 function saveCustomTemplate(){
