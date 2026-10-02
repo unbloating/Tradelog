@@ -31,7 +31,7 @@ body{overflow-x:hidden}.app{min-height:100vh;background:radial-gradient(circle a
     </div>
     <div class="template-preview-wrap"><div class="template-canvas align-left" id="templateCanvas"><div class="template-canvas-overlay"></div><div class="canvas-badge" id="canvasBadge">TRADELOG</div><div class="canvas-title" id="canvasTitle">Trade smarter.</div><div class="canvas-sub" id="canvasSub">Review the process. Refine the setup. Execute with purpose.</div></div></div>
   </div>
-  <div class="template-save-row"><button class="btn" id="templateReset" type="button">Reset</button><button class="btn primary" id="templateSave" type="button">Save template</button></div>
+  <div class="template-save-row"><button class="btn" id="templateReset" type="button">Reset</button><button class="btn" id="templatePublish" type="button">Publish to community</button><button class="btn primary" id="templateSave" type="button">Save template</button></div>
 </dialog>
 <dialog id="authDialog" class="auth-dialog" aria-labelledby="authDialogTitle" aria-describedby="authDialogSubtitle">
   <div class="auth-dialog-card">
@@ -61,6 +61,7 @@ body{overflow-x:hidden}.app{min-height:100vh;background:radial-gradient(circle a
 <section id="templates" class="hidden">
   <div class="hero" style="margin-bottom:18px"><div><div class="eyebrow">Template studio</div><h1 style="font-size:30px">Design it your way.</h1><p>Start from a recommendation or build a completely custom template.</p></div><button class="btn primary" id="createTemplate">＋ Create template</button></div>
   <div class="section card"><div class="sectionhead"><h2>Recommended templates</h2><span class="muted">Canva-style starting points</span></div><div class="template-grid" id="templateGallery"></div></div>
+  <div class="section card"><div class="sectionhead"><div><h2>Community templates</h2><p class="muted" style="margin:4px 0 0">Discover designs from other TradeLog users.</p></div><div style="display:flex;gap:8px;align-items:center"><input id="templateSearch" placeholder="Search templates…" style="max-width:210px"><select id="templateSort"><option value="new">Newest</option><option value="likes">Most liked</option></select></div></div><div class="template-grid" id="communityTemplateGallery"><div class="muted">Loading community templates…</div></div></div>
   <div class="section card"><div class="sectionhead"><h2>My templates</h2><span class="muted">Saved on this device</span></div><div class="template-grid" id="myTemplateGallery"><div class="muted">No custom templates yet.</div></div></div>
 </section>
 <section id="profile" class="hidden"><div class="layout"><div class="card"><div class="profile-head"><img id="profileAvatar" class="avatar" alt="Profile picture"><div></div></div><div class="profile-avatar-actions"><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden"><button class="btn" id="changeAvatar">Change profile picture</button><span class="muted" style="font-size:11px">Max 2 MB</span></div><div id="authStatus" class="muted" style="margin-bottom:12px">Not signed in</div><div class="eyebrow">Public profile</div><h2 style="font-size:28px;margin:8px 0">@yourname</h2><p class="muted">Public templates can be shared without exposing private trade notes.</p><div class="field"><label>Username</label><input id="profileUsername" value="yourname" minlength="1" maxlength="24" pattern="[A-Za-z0-9_]{1,24}" autocomplete="username"><small class="muted">1–24 characters • letters, numbers, and underscores</small></div><div class="field"><label>Bio</label><textarea id="profileBio">Process over prediction.</textarea></div><div class="section" style="margin-top:18px"><div class="sectionhead"><h2>Social links</h2><span class="muted">Manual links only</span></div><p class="muted" style="font-size:12px;margin-top:0">Add your profiles without connecting or signing in through social platforms.</p><div class="field"><label>Instagram</label><input id="instagramUrl" type="url" placeholder="https://instagram.com/yourname" autocomplete="url"></div><div class="field"><label>X / Twitter</label><input id="xUrl" type="url" placeholder="https://x.com/yourname" autocomplete="url"></div><div class="field"><label>Discord</label><input id="discordUrl" type="url" placeholder="https://discord.com/users/..." autocomplete="url"></div></div><button class="btn primary" id="saveProfile">Save profile</button></div></div></div></section>
@@ -117,12 +118,57 @@ function renderMyTemplates(){
 function saveCustomTemplate(){
  const t=templateDataFromInputs();t.name=t.title.trim()||"My Template";const items=JSON.parse(localStorage.getItem("tradelog:templates")||"[]");if(editingTemplate?.savedIndex!=null)items[editingTemplate.savedIndex]=t;else items.unshift(t);localStorage.setItem("tradelog:templates",JSON.stringify(items));$("#templateEditor").close();renderMyTemplates();toast("Template saved.");
 }
+async function publishTemplate(){
+ const session=await refreshAuth();if(!session){toast("Sign in to publish templates.");return}
+ const t=templateDataFromInputs(),name=t.name||"My Template",description=t.sub||"";
+ const {data,error}=await supabaseClient.from("template_posts").insert({user_id:session.user.id,name,description,design:t,is_public:true}).select("id").single();
+ if(error){toast("Publish failed: "+error.message);return}
+ $("#templateEditor").close();await loadCommunityTemplates();toast("Template published.");
+}
+async function toggleTemplateLike(id,liked){
+ const session=await refreshAuth();if(!session){toast("Sign in to like templates.");return}
+ const q=liked?supabaseClient.from("template_likes").delete().eq("template_id",id).eq("user_id",session.user.id):supabaseClient.from("template_likes").insert({template_id:id,user_id:session.user.id});
+ const {error}=await q;if(error){toast(error.message);return}loadCommunityTemplates();
+}
+async function toggleTemplateSave(id,saved){
+ const session=await refreshAuth();if(!session){toast("Sign in to save templates.");return}
+ const q=saved?supabaseClient.from("template_saves").delete().eq("template_id",id).eq("user_id",session.user.id):supabaseClient.from("template_saves").insert({template_id:id,user_id:session.user.id});
+ const {error}=await q;if(error){toast(error.message);return}toast(saved?"Removed from saved.":"Saved template.");loadCommunityTemplates();
+}
+async function useCommunityTemplate(id){
+ const {data,error}=await supabaseClient.from("template_posts").select("design,name").eq("id",id).single();if(error||!data){toast("Template could not be loaded.");return}
+ const t={...(data.design||{}),name:data.name};openTemplateEditor(t);
+}
+async function loadCommunityTemplates(){
+ const search=($("#templateSearch")?.value||"").trim(),sort=$("#templateSort")?.value||"new";
+ let q=supabaseClient.from("template_posts").select("id,user_id,name,description,design,created_at,updated_at,profiles(username,display_name,avatar_url)").eq("is_public",true);
+ if(search)q=q.or("name.ilike.%"+search+"%,description.ilike.%"+search+"%");
+ q=sort==="new"?q.order("updated_at",{ascending:false}):q.order("created_at",{ascending:false});
+ const {data,error}=await q.limit(40);const box=$("#communityTemplateGallery");if(!box)return;
+ if(error){box.innerHTML="<div class='muted'>Community templates could not load.</div>";return}
+ const ids=(data||[]).map(x=>x.id),session=await refreshAuth();let likes=[],saves=[];
+ if(session&&ids.length){const [lr,sr]=await Promise.all([supabaseClient.from("template_likes").select("template_id,user_id").in("template_id",ids),supabaseClient.from("template_saves").select("template_id,user_id").in("template_id",ids).eq("user_id",session.user.id)]);likes=lr.data||[];saves=sr.data||[]}
+ const likeCount=likes.reduce((m,x)=>(m[x.template_id]=(m[x.template_id]||0)+1,m),{}),liked=new Set(session?likes.filter(x=>x.user_id===session.user.id).map(x=>x.template_id):[]),saved=new Set(saves.map(x=>x.template_id));
+ const cards=(data||[]).map(t=>{const d=t.design||{},p=t.profiles||{};return "<div class='template-card'><div class='template-preview' style='background:"+templateBackground(d)+";color:"+(d.text||"#fff")+";font-family:"+templateFont(d.font||"system")+"'><div class='preview-title'>"+escapeHtml(d.title||t.name)+"</div><div class='preview-sub'>"+escapeHtml(d.sub||t.description||"")+"</div></div><div class='template-info'><div style='display:flex;justify-content:space-between;gap:8px'><b>"+escapeHtml(t.name)+"</b><span class='tag'>"+(likeCount[t.id]||0)+" ♥</span></div><p>"+escapeHtml(t.description||"")+"</p><p class='muted'>by <button class='linkbtn' data-template-creator='"+t.user_id+"'>@"+escapeHtml(p.username||"user")+"</button></p><div class='template-actions'><button class='btn primary' data-template-use-community='"+t.id+"'>Use template</button><button class='btn' data-template-like='"+t.id+"'>"+(liked.has(t.id)?"♥ Liked":"♡ Like")+"</button><button class='btn' data-template-save='"+t.id+"'>"+(saved.has(t.id)?"✓ Saved":"＋ Save")+"</button></div></div></div>"}).join("");
+ box.innerHTML=cards||"<div class='muted'>No public templates found.</div>";
+ box.querySelectorAll("[data-template-use-community]").forEach(b=>b.onclick=()=>useCommunityTemplate(b.dataset.templateUseCommunity));
+ box.querySelectorAll("[data-template-like]").forEach(b=>b.onclick=()=>toggleTemplateLike(b.dataset.templateLike,liked.has(b.dataset.templateLike)));
+ box.querySelectorAll("[data-template-save]").forEach(b=>b.onclick=()=>toggleTemplateSave(b.dataset.templateSave,saved.has(b.dataset.templateSave)));
+ box.querySelectorAll("[data-template-creator]").forEach(b=>b.onclick=()=>showCreatorProfile(b.dataset.templateCreator));
+}
+async function showCreatorProfile(userId){
+ const {data,error}=await supabaseClient.from("profiles").select("username,display_name,bio,avatar_url,instagram_url,x_url,discord_url").eq("id",userId).maybeSingle();
+ if(error||!data){toast("Profile unavailable.");return}
+ const links=[data.instagram_url,data.x_url,data.discord_url].filter(Boolean).length;
+ toast("@"+(data.username||"user")+" • "+(data.bio||"TradeLog creator")+(links?" • "+links+" social link"+(links>1?"s":""):""));
+}
+
 function resetTemplateEditor(){openTemplateEditor(editingTemplate&&recommendedTemplates.find(x=>x.id===editingTemplate.id)||null)}
 const quotes=["Consistency compounds.","Your journal is where mistakes become rules.","Protect the process. Let outcomes follow.","One clean decision at a time.","Review. Refine. Repeat.","Discipline is a strategy too.","Keep showing up. The data needs you.","A bad trade can still become a great lesson."];
 $("#quoteBtn").onclick=()=>$("#quote").innerHTML="“"+quotes[Math.floor(Math.random()*quotes.length)]+"”<small>Journal the process, not just the result.</small>";
 function toast(t){$("#toast").textContent=t;$("#toast").style.display="block";setTimeout(()=>$("#toast").style.display="none",1800)}
 $("#saveTrade").onclick=()=>toast("Sign in to save trades to your account.");$("#saveProfile").onclick=()=>toast("Profile saved.");
-$("#createTemplate").onclick=()=>openTemplateEditor();$("#templateClose").onclick=()=>$("#templateEditor").close();$("#templateSave").onclick=saveCustomTemplate;$("#templateReset").onclick=()=>openTemplateEditor();["tplTitle","tplSubtitle","tplBadge","tplBg","tplAccent","tplTextColor","tplBgStyle","tplFont","tplAlign"].forEach(id=>$("#"+id).addEventListener("input",renderTemplateCanvas));$("#tplBgImage").onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5000000){toast("Background image must be 5 MB or smaller.");return}const reader=new FileReader();reader.onload=()=>{templateBgImage=reader.result;renderTemplateCanvas()};reader.readAsDataURL(file)};$("#tplRemoveBg").onclick=()=>{templateBgImage="";$("#tplBgImage").value="";renderTemplateCanvas()};renderTemplateGallery();
+$("#createTemplate").onclick=()=>openTemplateEditor();$("#templateClose").onclick=()=>$("#templateEditor").close();$("#templateSave").onclick=saveCustomTemplate;$("#templatePublish").onclick=publishTemplate;$("#templateReset").onclick=()=>openTemplateEditor();$("#templateSearch").oninput=loadCommunityTemplates;$("#templateSort").onchange=loadCommunityTemplates;["tplTitle","tplSubtitle","tplBadge","tplBg","tplAccent","tplTextColor","tplBgStyle","tplFont","tplAlign"].forEach(id=>$("#"+id).addEventListener("input",renderTemplateCanvas));$("#tplBgImage").onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5000000){toast("Background image must be 5 MB or smaller.");return}const reader=new FileReader();reader.onload=()=>{templateBgImage=reader.result;renderTemplateCanvas()};reader.readAsDataURL(file)};$("#tplRemoveBg").onclick=()=>{templateBgImage="";$("#tplBgImage").value="";renderTemplateCanvas()};renderTemplateGallery();loadCommunityTemplates();
 $("#calc").onclick=()=>{let w=+$("#wr").value/100,t=+$("#trades").value,win=+$("#aw").value,loss=+$("#al").value;let monthly=w*t*win-(1-w)*t*loss;$("#calcOut").innerHTML="Scenario P&L: <span class='"+(monthly>=0?"good":"bad")+"'>"+(monthly>=0?"+":"")+"$"+monthly.toFixed(0)+" / month</span><br><span class='muted' style='font-size:12px'>Hypothetical only — change assumptions to model different scenarios.</span>"};
 const SUPABASE_URL="https://tbjduoaywvmggcjejsth.supabase.co";
 const TRADELOG_URL="https://unbloating.github.io/Tradelog/";
