@@ -115,12 +115,17 @@ async function loadProfile(){
   const {data,error}=await supabaseClient.from("profiles").select("username,bio,avatar_url,instagram_url,x_url,discord_url").eq("id",session.user.id).maybeSingle();
   if(error){toast("Profile load failed: "+error.message);return}
   if(data){
-    const fields=document.querySelectorAll("#profile input,#profile textarea");
-    if(fields[0])fields[0].value=data.username||"yourname";
-    if(fields[1])fields[1].value=data.bio||"";
-    if($("#profileAvatar")){$("#profileAvatar").src=data.avatar_url||"";$("#profileAvatar").dataset.url=data.avatar_url||"";}if($("#instagramUrl"))$("#instagramUrl").value=data.instagram_url||"";
-    if($("#xUrl"))$("#xUrl").value=data.x_url||"";
-    if($("#discordUrl"))$("#discordUrl").value=data.discord_url||"";
+    // Load profile fields by ID. Do not use a generic input/textarea list because
+    // #avatarFile is a file input and browsers reject assigning a non-empty value to it.
+    $("#profileUsername").value=data.username||"yourname";
+    $("#profileBio").value=data.bio||"";
+    if($("#profileAvatar")){
+      $("#profileAvatar").src=data.avatar_url||"";
+      $("#profileAvatar").dataset.url=data.avatar_url||"";
+    }
+    $("#instagramUrl").value=data.instagram_url||"";
+    $("#xUrl").value=data.x_url||"";
+    $("#discordUrl").value=data.discord_url||"";
     document.querySelector("#profile h2").textContent="@"+(data.username||"yourname");
   }
 }
