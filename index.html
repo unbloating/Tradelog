@@ -194,7 +194,11 @@ async function sendChat(){
 }
 $("#startChat").onclick=startChat;$("#sendChat").onclick=sendChat;$("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}});
 (function restore(){
-  if(state.profile){const fields=document.querySelectorAll("#profile input,#profile textarea");if(fields[0])fields[0].value=state.profile.username||"yourname";if(fields[1])fields[1].value=state.profile.bio||"Process over prediction.";document.querySelector("#profile h2").textContent="@"+(state.profile.username||"yourname")}
+  if(state.profile){
+    $("#profileUsername").value=state.profile.username||"yourname";
+    $("#profileBio").value=state.profile.bio||"Process over prediction.";
+    document.querySelector("#profile h2").textContent="@"+(state.profile.username||"yourname");
+  }
   renderTrades();
   loadCloudTrades();
   loadProfile();
