@@ -191,7 +191,7 @@ const quotes=["Consistency compounds.","Your journal is where mistakes become ru
 $("#quoteBtn").onclick=()=>$("#quote").innerHTML="“"+quotes[Math.floor(Math.random()*quotes.length)]+"”<small>Journal the process, not just the result.</small>";
 function toast(t){$("#toast").textContent=t;$("#toast").style.display="block";setTimeout(()=>$("#toast").style.display="none",1800)}
 $("#saveTrade").onclick=()=>toast("Sign in to save trades to your account.");$("#saveProfile").onclick=()=>toast("Profile saved.");
-$("#createTemplate").onclick=()=>openTemplateEditor();$("#templateClose").onclick=()=>$("#templateEditor").close();$("#tplUseData").onclick=useMyTradeData;$("#templateSave").onclick=saveCustomTemplate;$("#templatePublish").onclick=publishTemplate;$("#templateReset").onclick=()=>openTemplateEditor();$("#templateSearch").oninput=loadCommunityTemplates;$("#templateSort").onchange=loadCommunityTemplates;["tplTitle","tplSubtitle","tplBadge","tplBg","tplAccent","tplTextColor","tplBgStyle","tplFont","tplAlign"].forEach(id=>$("#"+id).addEventListener("input",renderTemplateCanvas));$("#tplBgImage").onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5000000){toast("Background image must be 5 MB or smaller.");return}const reader=new FileReader();reader.onload=()=>{templateBgImage=reader.result;renderTemplateCanvas()};reader.readAsDataURL(file)};$("#tplRemoveBg").onclick=()=>{templateBgImage="";$("#tplBgImage").value="";renderTemplateCanvas()};renderTemplateGallery();
+$("#createTemplate").onclick=()=>openTemplateEditor();$("#templateClose").onclick=()=>$("#templateEditor").close();$("#dashboard .rows").addEventListener("click",e=>{const b=e.target.closest("[data-trade-card]");if(b)createTradeCard(b.dataset.tradeCard)});$("#tplUseData").onclick=useMyTradeData;$("#templateSave").onclick=saveCustomTemplate;$("#templatePublish").onclick=publishTemplate;$("#templateReset").onclick=()=>openTemplateEditor();$("#templateSearch").oninput=loadCommunityTemplates;$("#templateSort").onchange=loadCommunityTemplates;["tplTitle","tplSubtitle","tplBadge","tplBg","tplAccent","tplTextColor","tplBgStyle","tplFont","tplAlign"].forEach(id=>$("#"+id).addEventListener("input",renderTemplateCanvas));$("#tplBgImage").onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5000000){toast("Background image must be 5 MB or smaller.");return}const reader=new FileReader();reader.onload=()=>{templateBgImage=reader.result;renderTemplateCanvas()};reader.readAsDataURL(file)};$("#tplRemoveBg").onclick=()=>{templateBgImage="";$("#tplBgImage").value="";renderTemplateCanvas()};renderTemplateGallery();
 $("#calc").onclick=()=>{let w=+$("#wr").value/100,t=+$("#trades").value,win=+$("#aw").value,loss=+$("#al").value;let monthly=w*t*win-(1-w)*t*loss;$("#calcOut").innerHTML="Scenario P&L: <span class='"+(monthly>=0?"good":"bad")+"'>"+(monthly>=0?"+":"")+"$"+monthly.toFixed(0)+" / month</span><br><span class='muted' style='font-size:12px'>Hypothetical only — change assumptions to model different scenarios.</span>"};
 const SUPABASE_URL="https://tbjduoaywvmggcjejsth.supabase.co";
 const TRADELOG_URL="https://unbloating.github.io/Tradelog/";
@@ -264,10 +264,20 @@ function renderTrades(){
   rows.innerHTML=recent.map(t=>{
     const r=Number(t.r||0), sign=r>=0?"+":"";
     const cls=r>=0?"good":"bad";
-    return '<div class="row"><b>'+escapeHtml(t.market||"Trade")+' • '+escapeHtml(t.setup||"Setup")+'</b><span class="tag">'+escapeHtml((t.tags||"Journaled").split(",")[0].trim())+'</span><span class="'+cls+'">'+sign+r.toFixed(1)+'R</span><span class="muted">'+new Date(t.createdAt).toLocaleDateString()+'</span></div>';
+    return '<div class="row"><b>'+escapeHtml(t.market||"Trade")+' • '+escapeHtml(t.setup||"Setup")+'</b><span class="tag">'+escapeHtml((t.tags||"Journaled").split(",")[0].trim())+'</span><span class="'+cls+'">'+sign+r.toFixed(1)+'R</span><span class="muted">'+new Date(t.createdAt).toLocaleDateString()+'</span><button class="btn" data-trade-card="'+escapeHtml(t.market||"Trade")+'|'+escapeHtml(t.setup||"Setup")+'|'+r.toFixed(2)+'|'+escapeHtml(t.risk||"")+'">Create card</button></div>';
   }).join("");
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function createTradeCard(encoded){
+ const [market,setup,r,risk]=encoded.split("|");
+ const t=recommendedTemplates[0];
+ openTemplateEditor(t);
+ $("#tplTitle").value=market+" • "+(Number(r)>=0?"+":"")+Number(r).toFixed(2)+"R";
+ $("#tplSubtitle").value=(setup||"Trade")+"\nResult: "+(Number(r)>=0?"+":"")+Number(r).toFixed(2)+"R"+(risk?" • Risk: $"+risk:"");
+ $("#tplBadge").value="TRADE CARD";
+ renderTemplateCanvas();
+ toast("Trade card created — customize it before saving.");
+}
 
 async function loadProfile(){
   const session=await refreshAuth();
