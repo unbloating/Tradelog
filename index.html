@@ -349,7 +349,7 @@ async function deleteStrategy(id){
 }
 async function loadStrategies(){
  const session=await refreshAuth(); if(!session)return;
- const {data,error}=await supabaseClient.from("strategies").select("id,name,description,rules,is_public").order("updated_at",{ascending:false});
+ const {data,error}=await supabaseClient.from("strategies").select("id,name,description,rules,is_public").eq("user_id",session.user.id).order("updated_at",{ascending:false});
  if(error){toast(error.message);return}
  const box=$("#strategies .rows"); if(!box)return;
  box.innerHTML=data&&data.length?data.map(x=>"<div class='row'><b>"+escapeHtml(x.name)+"</b><span class='tag'>"+(Array.isArray(x.rules)?x.rules.length:0)+" rules</span><span>"+(x.is_public?"Public":"Private")+"</span><div style='display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap'><button class='btn' data-edit-strategy='"+x.id+"'>Edit</button><button class='btn' data-strategy='"+x.id+"'>"+(x.is_public?"Make private":"Publish")+"</button><button class='btn' data-delete-strategy='"+x.id+"'>Delete</button></div></div>").join(""):"<div class='muted'>No strategy templates yet.</div>";
@@ -448,7 +448,7 @@ function updateDashboard(trades){renderPnlPeriods(trades);const withR=trades.fil
 const STORAGE_KEY="tradelog:v1"; // Keep the existing key so saved journal entries remain available.
 const state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"trades":[],"profile":{"username":"yourname","bio":"Process over prediction."},"settings":{}}');
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
-async function fetchDashboardTrades(){const {data}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);return data||[]}
+async function fetchDashboardTrades(){const session=await refreshAuth();if(!session)return [];const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);if(error){toast("Could not refresh account trades.");return []}return data||[]}
 function renderTrades(){
   const rows=document.querySelector("#dashboard .rows");
   if(!rows)return;
