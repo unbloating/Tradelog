@@ -8,10 +8,10 @@
   "theme_color": "#050607",
   "icons": [
     {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "ciph-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "description": "Market-moving news, Nasdaq bias, liquidity levels and trade journaling."
