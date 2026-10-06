@@ -179,6 +179,7 @@ $("#refreshBiasNews").onclick=()=>loadBiasNews(false);$("#biasAlertsToggle")?.ad
 
 function show(v){views.forEach(x=>$("#"+x).classList.toggle("hidden",x!==v));document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===v))}
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>show(b.dataset.view));
+if(new URLSearchParams(location.search).get("view")==="bias")show("bias");
 $("#newTrade").onclick=()=>show("journal");$("#viewJournal").onclick=()=>show("journal");$("#newStrategy").onclick=()=>show("strategies");$("#addTemplate").onclick=async()=>{const session=await refreshAuth();if(!session){toast("Sign in to create a strategy.");return;}const name=prompt("Strategy template name:");if(!name)return;const description=prompt("Short description:")||"";const rules=(prompt("Rules, one per line:")||"").split(/\n/).map(x=>x.trim()).filter(Boolean);const pub=confirm("Publish this strategy publicly?");const {error}=await supabaseClient.from("strategies").insert({user_id:session.user.id,name:name.trim(),description,rules,is_public:pub});if(error){toast(error.message);return}toast(pub?"Public strategy saved.":"Private strategy saved.");loadStrategies();};
 $("#settingsBtn").onclick=()=>$("#settings").classList.toggle("hidden");
 $("#themeBtn").onclick=()=>$("#modeToggle").click();
