@@ -321,7 +321,7 @@ $("#authSubmit").onclick=submitAuth;
 $("#authDialog").addEventListener("click",e=>{if(e.target===e.currentTarget)closeAuth()});
 $("#authDialog").addEventListener("keydown",e=>{if(e.key==="Escape")closeAuth()});
 
-supabaseClient.auth.onAuthStateChange((event)=>{refreshAuth();if(event==="PASSWORD_RECOVERY")openAuth("newpassword");loadCloudTrades();loadChats();});
+supabaseClient.auth.onAuthStateChange((event)=>{refreshAuth();if(event==="PASSWORD_RECOVERY")openAuth("newpassword");if(event==="SIGNED_OUT"){const legacy=localStorage.getItem("tradelog:legacy:v1");if(!legacy&&state.trades?.length)localStorage.setItem("tradelog:legacy:v1",JSON.stringify({trades:state.trades,profile:state.profile,settings:state.settings}));state.trades=[];persist();renderTrades();updateDashboard([]);}loadCloudTrades();loadChats();});
 refreshAuth();
 loadCommunityTemplates();
 
@@ -357,7 +357,7 @@ async function loadStrategies(){
  box.querySelectorAll("[data-delete-strategy]").forEach(b=>b.onclick=()=>deleteStrategy(b.dataset.deleteStrategy));
  box.querySelectorAll("[data-strategy]").forEach(b=>b.onclick=async()=>{const x=data.find(v=>v.id===b.dataset.strategy);const r=await supabaseClient.from("strategies").update({is_public:!x.is_public}).eq("id",x.id).eq("user_id",session.user.id);if(r.error){toast(r.error.message);return}loadStrategies()});
 }
-async function loadCloudTrades(){const session=await refreshAuth();if(!session)return;const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);if(error){toast(error.message);return}state.trades=(data||[]).map(t=>({market:t.market,setup:t.setup,r:t.result_r,risk:t.risk_usd,createdAt:t.traded_at}));persist();renderTrades();updateDashboard(data||[])}
+async function loadCloudTrades(){const session=await refreshAuth();if(!session){state.trades=[];renderTrades();updateDashboard([]);return}const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);if(error){toast("Could not load this account’s trades.");return}state.trades=(data||[]).map(t=>({market:t.market,setup:t.setup,r:t.result_r,risk:t.risk_usd,createdAt:t.traded_at}));renderTrades();updateDashboard(data||[])}
 async function savePnlToPhotos(){
   const card=$("#pnlBreakdownCard"), btn=$("#savePnlPhotos");
   if(!card)return;
