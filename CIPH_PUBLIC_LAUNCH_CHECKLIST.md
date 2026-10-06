@@ -89,8 +89,8 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 ## Free public news scope (2026-10-06)
 
-- New entry page: `news.html` is merged into `main` in commit `e8e9ed8448d5814ab4049bee919c927bd8a9a90f`. It is static, public, and independent of Supabase/authentication.
-- Forex Factory calendar and news remain the primary sources through labeled official outbound links. No scraping, copied headlines/events, external API key, or paid data dependency was added.
-- Existing journal, database, and account-backed features were not removed or migrated. This standalone page does not replace or overwrite their data.
-- GitHub Pages deployment run [#37499497213](https://github.com/unbloating/Tradelog/actions/runs/37499497213) completed successfully after the latest checklist commit; static checks also passed in [run #37499498913](https://github.com/unbloating/Tradelog/actions/runs/37499498913).
-- User confirmed Forex Factory links work on their device. The live news URL still needs to be opened on the user's iPhone to confirm the original 404 is gone. Real-account privacy/auth tests and iPhone Safari app QA remain unverified and are not marked complete.
+- Daily news page `news.html` updated in commit `0088fda36b701264f25c3b2650777a6aa0e872ca` to show recent public business/macro headlines in-app using the GDELT DOC API, with a cautious rule-based headline-risk summary instead of Forex Factory links.
+- The assessment is explicitly not a guaranteed “good day” signal: it uses headline keyword counts and does not verify the full economic calendar or live price action.
+- Existing journal, database, and account-backed features were not removed or migrated. The news page remains standalone and does not initialize Supabase.
+- Previous GitHub Pages deployment succeeded; the new in-app headline version needs a fresh deployment check and real-device API/CORS verification.
+- Real-account privacy/auth tests and iPhone Safari app QA remain unverified and are not marked complete.
