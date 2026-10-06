@@ -40,13 +40,19 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 ## 4. CIPH news and market information
 
+- [x] Add a standalone public news-first page at `news.html` that requires no sign-in or Supabase access.
+- [x] Use clearly labeled links to Forex Factory's official calendar and news pages. Its published terms prohibit unauthorized copying/redistribution; no permitted API/embed/feed was established, so CIPH does not scrape or republish its content.
+- [x] Add a Nasdaq-focused preparation brief without claiming live bias, guaranteed direction, invented event rows, or dependable push notifications.
+- [x] Display the device-local clock and detected timezone; instruct users to verify event times and impact on the source calendar.
+- [ ] Manually test the new page and outbound source links on desktop and iPhone Safari.
+
 - [x] Inspect source links: Forex Factory calendar and breaking-news links are present.
 - [x] Inspect notification copy: alerts are described as operating while CIPH is open and notifications are permitted, not as guaranteed price predictions.
 - [ ] Verify event timestamps and timezone behavior with a known upcoming event.
 - [ ] Test high-impact news notifications on a supported device and confirm permission-denied states are handled.
 - [ ] Check Nasdaq bias/market analysis for clear timestamps and source attribution in the running app.
 - [ ] Verify unavailable or delayed market/news data is clearly labeled instead of presented as live.
-- [ ] Test the app when a news source is unavailable or slow.
+- [x] Provide a useful static fallback if the external source is unavailable: source links and educational Nasdaq preparation guidance remain visible without fetching external content.
 
 ## 5. Mobile and interface quality
 
@@ -79,3 +85,11 @@ Use this checklist to verify CIPH before merging the release branch or announcin
   2. **Authenticated SECURITY DEFINER function warning for `create_direct_conversation`.** The RPC is intentionally callable by authenticated users for chat creation; it validates the signed-in caller and target profile, uses a locked search path, and is not executable by anon. Review the warning rather than blindly disabling this required feature.
 - **Not verified in this environment:** real sign-up/verification/reset emails, two-account end-to-end privacy tests, trade CRUD against a real session, iPhone Safari QA, browser console/network behavior, and successful production deployment of the release branch.
 - **Release decision:** not launch-ready until the remaining dashboard setting and live-device/account tests are completed. Do not check items solely because code was inspected.
+
+
+## Free public news scope (2026-10-06)
+
+- New entry page: `news.html` on the release branch. It is static, public, and independent of Supabase/authentication.
+- Forex Factory calendar and news remain the primary sources through labeled official outbound links. No scraping, copied headlines/events, external API key, or paid data dependency was added.
+- Existing journal, database, and account-backed features were not removed or migrated. This standalone page does not replace or overwrite their data.
+- Product implementation is committed on `ciph-public-release-checklist`; desktop/iPhone live checks and deployment verification remain outstanding.
