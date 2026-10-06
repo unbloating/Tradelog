@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090c">
-<meta name="description" content="CIPH Market Brief — free access to Forex Factory's official market news and economic calendar, with a Nasdaq-focused preparation brief.">
+<meta name="description" content="CIPH Market Brief — daily market headlines and a cautious Nasdaq trading-readiness summary.">
 <link rel="icon" href="ciph-logo.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="ciph-logo.svg">
 <link rel="manifest" href="manifest.webmanifest">
@@ -23,22 +23,20 @@
 </header>
 <main>
 <section class="hero" aria-labelledby="page-title">
-<div><div class="eyebrow">Market context, not market calls</div><h1>Know what’s<br>on the calendar.</h1><p>A clean starting point for market-moving headlines and economic releases, with a quick Nasdaq-focused preparation brief. Source data stays with Forex Factory.</p></div>
+<div><div class="eyebrow">Today’s market briefing</div><h1>Know the day<br>before you trade.</h1><p>A daily snapshot of market-moving headlines and what they may mean for NQ / Nasdaq. Get a cautious trade-readiness read before you enter.</p></div>
 <aside class="hero-aside" aria-label="Your device time">
 <div class="aside-label">Your local time</div><div class="clock" id="localClock">--:--:--</div><div class="timezone" id="timezoneLabel">Timezone detected from this device</div>
 </aside>
 </section>
-<section class="source-row" aria-label="Official Forex Factory sources">
-<article class="source-card">
-<div class="source-top"><span class="source-type"><span class="dot"></span>Official source</span><span class="source-type">Economic events</span></div>
-<h2>Economic calendar</h2><p>Check scheduled releases, currencies, expected impact, and event updates directly on Forex Factory. Use its own timezone controls to confirm the times for your session.</p>
-<a class="action" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">Open Forex Factory calendar <span aria-hidden="true">↗</span></a>
-</article>
-<article class="source-card">
-<div class="source-top"><span class="source-type"><span class="dot"></span>Official source</span><span class="source-type">Latest headlines</span></div>
-<h2>Market news</h2><p>Read the latest curated forex and macro headlines on the source website, including its article context and links to original publishers.</p>
-<a class="action secondary" href="https://www.forexfactory.com/news" target="_blank" rel="noopener noreferrer">Open Forex Factory news <span aria-hidden="true">↗</span></a>
-</article>
+<section class="section" aria-labelledby="today-title">
+<div class="section-head"><div><h2 id="today-title">Today’s news</h2><p id="newsStatus" aria-live="polite">Loading recent market headlines…</p></div><button class="action secondary" id="refreshNews" type="button" style="margin-top:0">Refresh headlines ↻</button></div>
+<div class="panel" style="padding:20px">
+<div class="source-top"><span class="source-type">Trading conditions</span><span class="source-type" id="assessmentBadge">Checking headlines</span></div>
+<h2 id="assessmentTitle" style="font-size:24px;letter-spacing:-.04em;margin:12px 0 6px">Checking today’s setup…</h2>
+<p id="assessmentText" style="margin:0;color:var(--muted)">We’re checking recent business and macro headlines. This is a headline-based risk check, not a prediction.</p>
+</div>
+<div id="headlineList" class="brief-grid" style="margin-top:14px"><article class="brief-item"><p>Fetching recent news…</p></article></div>
+<div class="callout"><b>How to use this:</b> “Better conditions” means fewer obvious headline-risk flags in the sources checked, not that a trade will win. This page does not yet verify the full economic calendar or real-time price action. Check your setup, liquidity, scheduled releases, and risk before trading.</div>
 </section>
 <section class="section" aria-labelledby="nasdaq-title">
 <div class="section-head"><div><h2 id="nasdaq-title">Nasdaq preparation brief</h2><p>A repeatable checklist for NQ / Nasdaq sessions — not a live signal or price prediction.</p></div></div>
@@ -48,22 +46,73 @@
 <article class="brief-item"><div class="number">03 / EARNINGS</div><h3>Know the company catalysts</h3><p>Large technology-company earnings and guidance can influence Nasdaq concentration. Confirm current earnings dates and headlines from a current, reputable source.</p></article>
 <article class="brief-item"><div class="number">04 / EXECUTION</div><h3>Plan around volatility</h3><p>Mark your levels, define invalidation and risk before entry, and consider waiting for the first reaction to high-impact releases. News alone does not establish direction.</p></article>
 </div>
-<div class="callout"><b>Important:</b> This page does not ingest, copy, or republish Forex Factory event data or headlines. Forex Factory’s published terms prohibit unauthorized copying and redistribution, so the buttons open its official pages. No live Nasdaq bias, event countdown, push alert, or market prediction is implied.</div>
 </section>
 </main>
-<footer class="footer"><div>CIPH Market Brief · Independent market-preparation tool.</div><div>Source: <a href="https://www.forexfactory.com/notices" target="_blank" rel="noopener noreferrer">Forex Factory terms</a> · <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">Calendar</a> · <a href="https://www.forexfactory.com/news" target="_blank" rel="noopener noreferrer">News</a></div></footer>
+<footer class="footer"><div>CIPH Market Brief · Daily market context, not financial advice.</div><div>Headlines are sourced from recent public business-news coverage.</div></footer>
 </div>
 <script>
 (function(){
   const clock=document.getElementById('localClock');
   const zone=document.getElementById('timezoneLabel');
+  const status=document.getElementById('newsStatus');
+  const list=document.getElementById('headlineList');
+  const badge=document.getElementById('assessmentBadge');
+  const title=document.getElementById('assessmentTitle');
+  const assessment=document.getElementById('assessmentText');
+  const riskTerms=/fed|federal reserve|inflation|cpi|ppi|jobs report|payroll|unemployment|interest rate|rate decision|fomc|treasury yield|bond yield|tariff|sanction|war |attack|missile|recession|gdp|pce|powell|rate hike|rate cut|layoff|earnings miss|guidance cut/i;
+  const positiveTerms=/beats estimates|earnings beat|strong earnings|cooling inflation|inflation eased|rate cut|deal reached|ceasefire|growth accelerat/i;
+  const volatilityTerms=/surge|plunge|slump|crash|soar|shock|unexpected|emergency|halt|selloff|sell-off|spike|record high|record low/i;
   function updateClock(){
     const now=new Date();
     clock.textContent=new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).format(now);
-    zone.textContent=Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local device timezone';
+    zone.textContent=(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local device timezone')+' · '+new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}).format(now);
   }
-  updateClock();
-  window.setInterval(updateClock,1000);
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  async function loadNews(){
+    status.textContent='Checking recent business and market headlines…';
+    list.innerHTML='<article class="brief-item"><p>Loading headlines…</p></article>';
+    badge.textContent='Checking headlines';
+    title.textContent='Checking today’s setup…';
+    assessment.textContent='This read is based on recent headlines, not live price action or a complete economic calendar.';
+    const query='(Nasdaq OR Federal Reserve OR inflation OR Treasury yields OR jobs OR technology stocks OR stock market)';
+    const url='https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent(query)+'&mode=ArtList&format=json&sort=HybridRel&timespan=24h&maxrecords=15';
+    try{
+      const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store'});
+      if(!res.ok) throw new Error('News source returned '+res.status);
+      const data=await res.json();
+      const articles=(data.articles||[]).filter(a=>a.title&&a.url).slice(0,12);
+      if(!articles.length) throw new Error('No recent headlines returned');
+      const corpus=articles.map(a=>a.title+' '+(a.domain||'')).join(' ');
+      const riskCount=articles.filter(a=>riskTerms.test(a.title)).length;
+      const volatilityCount=articles.filter(a=>volatilityTerms.test(a.title)).length;
+      const positiveCount=articles.filter(a=>positiveTerms.test(a.title)).length;
+      const caution=riskCount>=5||volatilityCount>=3;
+      const mixed=!caution&&(riskCount>=2||volatilityCount>=1||positiveCount>=2);
+      if(caution){
+        badge.textContent='Caution';badge.style.color='var(--amber)';
+        title.textContent='Be selective — headline risk is elevated';
+        assessment.textContent='Several recent headlines mention major macro, policy, geopolitical, or volatility-related themes. Consider smaller risk, wait for the opening reaction, and avoid forcing a trade.';
+      }else if(mixed){
+        badge.textContent='Mixed';badge.style.color='var(--amber)';
+        title.textContent='Mixed conditions — wait for confirmation';
+        assessment.textContent='The headline scan shows a mix of potential catalysts and/or volatility. Trade only a clear setup with defined invalidation; there is no reliable directional edge from headlines alone.';
+      }else{
+        badge.textContent='No major headline flag';badge.style.color='var(--green)';
+        title.textContent='No obvious headline-risk cluster detected';
+        assessment.textContent='The headlines scanned did not trigger the app’s higher-risk threshold. That does not mean it is a “good day” automatically: confirm the economic calendar, volatility, spreads, and your setup before trading.';
+      }
+      list.innerHTML=articles.map((a,i)=>'<article class="brief-item"><div class="number">'+String(i+1).padStart(2,'0')+' / '+esc(a.domain||'NEWS')+'</div><h3><a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" style="text-decoration:none">'+esc(a.title)+'</a></h3><p>'+esc(a.seendate?('Updated '+a.seendate.replace('T',' ').replace('Z',' UTC')):'Recent coverage')+'</p></article>').join('');
+      status.textContent='Recent headlines from the last 24 hours · '+articles.length+' stories · Updated '+new Date().toLocaleTimeString();
+    }catch(err){
+      badge.textContent='Unavailable';badge.style.color='var(--muted)';
+      title.textContent='Could not load today’s headlines';
+      assessment.textContent='The free news source may be temporarily unavailable or blocked by your connection. No trade-readiness rating has been made. Try refreshing in a moment.';
+      list.innerHTML='<article class="brief-item"><div class="number">LIVE NEWS</div><h3>Headlines unavailable</h3><p>We will not guess or show stale stories as current. Try the refresh button later.</p></article>';
+      status.textContent='Live headline request failed · '+new Date().toLocaleTimeString();
+    }
+  }
+  document.getElementById('refreshNews').addEventListener('click',loadNews);
+  updateClock();window.setInterval(updateClock,1000);loadNews();
 })();
 </script>
 </body>
