@@ -357,7 +357,7 @@ async function loadStrategies(){
  box.querySelectorAll("[data-delete-strategy]").forEach(b=>b.onclick=()=>deleteStrategy(b.dataset.deleteStrategy));
  box.querySelectorAll("[data-strategy]").forEach(b=>b.onclick=async()=>{const x=data.find(v=>v.id===b.dataset.strategy);const r=await supabaseClient.from("strategies").update({is_public:!x.is_public}).eq("id",x.id).eq("user_id",session.user.id);if(r.error){toast(r.error.message);return}loadStrategies()});
 }
-async function loadCloudTrades(){const session=await refreshAuth();if(!session){state.trades=[];renderTrades();updateDashboard([]);return}const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);if(error){toast("Could not load this account’s trades.");return}state.trades=(data||[]).map(t=>({market:t.market,setup:t.setup,r:t.result_r,risk:t.risk_usd,createdAt:t.traded_at}));renderTrades();updateDashboard(data||[])}
+async function loadCloudTrades(){const session=await refreshAuth();if(!session){state.trades=[];renderTrades();updateDashboard([]);return}const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").eq("user_id",session.user.id).order("traded_at",{ascending:true}).limit(1000);if(error){state.trades=[];renderTrades();updateDashboard([]);toast("Could not load this account’s trades.");return}state.trades=(data||[]).map(t=>({market:t.market,setup:t.setup,r:t.result_r,risk:t.risk_usd,createdAt:t.traded_at}));renderTrades();updateDashboard(data||[])}
 async function savePnlToPhotos(){
   const card=$("#pnlBreakdownCard"), btn=$("#savePnlPhotos");
   if(!card)return;
@@ -448,7 +448,7 @@ function updateDashboard(trades){renderPnlPeriods(trades);const withR=trades.fil
 const STORAGE_KEY="tradelog:v1"; // Keep the existing key so saved journal entries remain available.
 const state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"trades":[],"profile":{"username":"yourname","bio":"Process over prediction."},"settings":{}}');
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
-async function fetchDashboardTrades(){const session=await refreshAuth();if(!session)return [];const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").order("traded_at",{ascending:true}).limit(1000);if(error){toast("Could not refresh account trades.");return []}return data||[]}
+async function fetchDashboardTrades(){const session=await refreshAuth();if(!session)return [];const {data,error}=await supabaseClient.from("trades").select("market,setup,result_r,risk_usd,traded_at").eq("user_id",session.user.id).order("traded_at",{ascending:true}).limit(1000);if(error){toast("Could not refresh account trades.");return []}return data||[]}
 function renderTrades(){
   const rows=document.querySelector("#dashboard .rows");
   if(!rows)return;
