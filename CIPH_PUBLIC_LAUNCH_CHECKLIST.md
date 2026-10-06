@@ -10,7 +10,7 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 - [ ] Test forgot-password and complete a password reset from the email link.
 - [ ] Confirm an unauthenticated visitor cannot view private journal entries.
 - [ ] Create two separate test accounts and verify each account sees only its own trades, journal notes, P&L, and private data.
-- [x] Inspect sign-out flow and verify the code clears in-memory state and avoids re-rendering stale dashboard rows; still perform live two-account testing before release.
+- [x] Inspect sign-out flow and verify the code clears in-memory state and avoids re-rendering stale dashboard rows; still perform live two-account testing before release.\n- [x] Add explicit signed-in `user_id` filters to both dashboard trade reads and clear in-memory dashboard rows when the cloud trade load fails (live account tests still required).
 - [x] Remove the policy that let signed-in users add themselves to any conversation; direct conversation creation is now routed through a validated authenticated RPC.
 - [ ] Verify direct messages are visible only to conversation members using two real test accounts.
 - [ ] Confirm public profiles reveal only the intended profile fields.
@@ -59,7 +59,7 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 ## 6. Release and deployment
 
-- [x] Record the latest RLS cleanup in a repository migration file on the release branch.
+- [x] Record the latest RLS cleanup in a repository migration file on the release branch.\n- [x] Add a GitHub Actions workflow for inline JavaScript syntax checks, manifest JSON validation, and a basic frontend secret-pattern scan; workflow execution still needs confirmation.
 - [ ] Run the available build, lint, and automated tests; record any missing test coverage.
 - [ ] Confirm the release changes are merged into the deployment branch.
 - [ ] Verify the hosting workflow completes successfully for the exact release commit.
@@ -73,7 +73,7 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 - **Database:** Project reports healthy. All 13 public tables have RLS enabled.
 - **Applied in production:** conversation-membership hardening, authenticated-only validated direct-chat RPC, duplicate permissive policy cleanup, and removal of redundant trade/social/like policies plus the direct conversation insert policy.
-- **Repository:** corresponding policy cleanup migration added to the `ciph-public-release-checklist` branch.
+- **Repository:** corresponding policy cleanup migration added to the `ciph-public-release-checklist` branch.\n- **Latest code hardening:** both dashboard trade reads now explicitly filter by the authenticated user ID; failed cloud trade loads clear visible in-memory rows. Commit: `fbfed6862b77c9d953e93adbd9e3dd2dff1a2aff`.\n- **Static CI:** `.github/workflows/ciph-static-checks.yml` added in commit `c6ded4485e83c22724073b55a684fe4a3104493d`; GitHub currently reports no workflow runs, so these checks are not yet confirmed passing.
 - **Remaining Supabase Security Advisor warnings:**
   1. **Leaked password protection is disabled.** This is an Auth dashboard setting and must be enabled by a project admin.
   2. **Authenticated SECURITY DEFINER function warning for `create_direct_conversation`.** The RPC is intentionally callable by authenticated users for chat creation; it validates the signed-in caller and target profile, uses a locked search path, and is not executable by anon. Review the warning rather than blindly disabling this required feature.
