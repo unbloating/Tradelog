@@ -59,7 +59,7 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 ## 6. Release and deployment
 
-- [x] Record the latest RLS cleanup in a repository migration file on the release branch.\n- [x] Add a GitHub Actions workflow for inline JavaScript syntax checks, manifest JSON validation, and a basic frontend secret-pattern scan; first workflow run passed. Recheck after the latest commit.
+- [x] Record the latest RLS cleanup in a repository migration file on the release branch.\n- [x] Add a GitHub Actions workflow for inline JavaScript syntax checks, manifest JSON validation, and a recognizable Supabase server-side key scan across all tracked files; initial workflow runs passed. Recheck after the latest workflow change.
 - [ ] Run the available build, lint, and automated tests; record any missing test coverage.
 - [ ] Confirm the release changes are merged into the deployment branch.
 - [ ] Verify the hosting workflow completes successfully for the exact release commit.
@@ -73,7 +73,7 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 - **Database:** Project reports healthy. All 13 public tables have RLS enabled.
 - **Applied in production:** conversation-membership hardening, authenticated-only validated direct-chat RPC, duplicate permissive policy cleanup, and removal of redundant trade/social/like policies plus the direct conversation insert policy.
-- **Repository:** corresponding policy cleanup migration added to the `ciph-public-release-checklist` branch.\n- **Latest code hardening:** both dashboard trade reads explicitly filter by the authenticated user ID; failed cloud trade loads clear visible in-memory rows; saving a cloud trade no longer copies the trade list into localStorage. Commits: `fbfed6862b77c9d953e93adbd9e3dd2dff1a2aff`, `de22e8342a5eda7bba6a1736c6baf2dc3a650912`.\n- **Static CI:** `.github/workflows/ciph-static-checks.yml` added in commit `c6ded4485e83c22724073b55a684fe4a3104493d`. GitHub Actions run `37490302360` passed inline JavaScript syntax checks, manifest JSON validation, and the frontend service-role-secret pattern scan. The later run for the trade-query change also passed all three steps; recheck the latest commit after this checklist update.
+- **Repository:** corresponding policy cleanup migration added to the `ciph-public-release-checklist` branch.\n- **Latest code hardening:** both dashboard trade reads explicitly filter by the authenticated user ID; failed cloud trade loads clear visible in-memory rows; saving a cloud trade no longer copies the trade list into localStorage. Commits: `fbfed6862b77c9d953e93adbd9e3dd2dff1a2aff`, `de22e8342a5eda7bba6a1736c6baf2dc3a650912`.\n- **Static CI:** `.github/workflows/ciph-static-checks.yml` added in commit `c6ded4485e83c22724073b55a684fe4a3104493d`; successful runs verified inline JavaScript syntax, manifest JSON, and key-pattern scanning. The workflow has now been strengthened to scan all tracked files; its run for that exact change still needs confirmation.
 - **Remaining Supabase Security Advisor warnings:**
   1. **Leaked password protection is disabled.** This is an Auth dashboard setting and must be enabled by a project admin.
   2. **Authenticated SECURITY DEFINER function warning for `create_direct_conversation`.** The RPC is intentionally callable by authenticated users for chat creation; it validates the signed-in caller and target profile, uses a locked search path, and is not executable by anon. Review the warning rather than blindly disabling this required feature.
