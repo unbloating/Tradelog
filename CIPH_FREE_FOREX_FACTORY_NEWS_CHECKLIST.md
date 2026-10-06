@@ -4,7 +4,7 @@
 
 **Repository:** `unbloating/Tradelog`
 **Working branch:** `ciph-public-release-checklist`
-**Status:** Product-scope implementation complete on the working branch. Official-source links are used because Forex Factory's published terms prohibit unauthorized copying/republication; no permission for an embed/feed/API was established. Verification and release tasks remain below.
+**Status:** Product implementation merged into `main` in commit `e8e9ed8448d5814ab4049bee919c927bd8a9a90f`. Static checks passed in GitHub Actions run [#29](https://github.com/unbloating/Tradelog/actions/runs/37499227715). The user confirmed the Forex Factory links work on their device. The public page URL still needs live deployment verification because the user encountered a 404.
 
 ## Product scope
 
@@ -27,13 +27,13 @@
 
 ## Verification and release
 
-- [ ] Test the official Forex Factory links on desktop and iPhone.
+- [x] User confirmed the official Forex Factory links work on their device. Desktop-specific QA remains unverified.
 - [ ] Verify the news/calendar UI remains useful if external content cannot be embedded or is unavailable. The static fallback is implemented; perform manual device checks.
-- [ ] Run static checks and record the exact commit and workflow result.
+- [x] Static checks passed on merged commit `e8e9ed8448d5814ab4049bee919c927bd8a9a90f`; [GitHub Actions run #29](https://github.com/unbloating/Tradelog/actions/runs/37499227715) succeeded.
 - [x] Confirm changes do not delete or overwrite existing TradeLog data/features by limiting this implementation to a new standalone static page and this checklist.
-- [ ] Update the main release checklist and PR description to reflect the reduced scope.
-- [ ] Do not merge or claim production deployment until the intended changes are reviewed and the deployed URL is verified.
+- [x] Updated the main release checklist and PR description to reflect the reduced scope.
+- [ ] Verify the published news URL returns HTTP 200 and opens in a fresh/private browser. The merge is complete, but deployment is not yet verified.
 
 ## Next checklist rule
 
-Once the free Forex Factory-centered news experience is implemented and verified, create the next checklist for source reliability, event-time correctness, accessibility, and lightweight ongoing maintenance. Keep any account-backed TradeLog launch blockers separate from public news browsing.
+Once the live URL and mobile behavior are verified, create the next checklist for source reliability, event-time correctness, accessibility, and lightweight ongoing maintenance. Keep any account-backed TradeLog launch blockers separate from public news browsing.
