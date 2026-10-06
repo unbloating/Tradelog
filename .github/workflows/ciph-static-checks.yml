@@ -77,11 +77,11 @@ jobs:
       - name: Check manifest JSON
         run: python3 -m json.tool manifest.webmanifest > /dev/null
 
-      - name: Reject service-role credentials in frontend files
+      - name: Reject recognizable Supabase server-side keys in tracked files
         shell: bash
         run: |
-          if grep -nE 'service_role_[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}' index.html; then
-            echo "Potential Supabase server-side secret found in index.html."
+          if git grep -nE 'service_role_[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}' -- .; then
+            echo "Potential Supabase server-side secret found in tracked files."
             exit 1
           fi
-          echo "No recognizable Supabase service-role/secret key pattern found in index.html."
+          echo "No recognizable Supabase service-role/secret key pattern found in tracked files."
