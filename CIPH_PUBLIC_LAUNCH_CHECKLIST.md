@@ -89,7 +89,8 @@ Use this checklist to verify CIPH before merging the release branch or announcin
 
 ## Free public news scope (2026-10-06)
 
-- New entry page: `news.html` on the release branch. It is static, public, and independent of Supabase/authentication.
+- New entry page: `news.html` is merged into `main` in commit `e8e9ed8448d5814ab4049bee919c927bd8a9a90f`. It is static, public, and independent of Supabase/authentication.
 - Forex Factory calendar and news remain the primary sources through labeled official outbound links. No scraping, copied headlines/events, external API key, or paid data dependency was added.
 - Existing journal, database, and account-backed features were not removed or migrated. This standalone page does not replace or overwrite their data.
-- Product implementation is committed on `ciph-public-release-checklist`; desktop/iPhone live checks and deployment verification remain outstanding.
+- GitHub Pages deployment run [#37499497213](https://github.com/unbloating/Tradelog/actions/runs/37499497213) completed successfully after the latest checklist commit; static checks also passed in [run #37499498913](https://github.com/unbloating/Tradelog/actions/runs/37499498913).
+- User confirmed Forex Factory links work on their device. The live news URL still needs to be opened on the user's iPhone to confirm the original 404 is gone. Real-account privacy/auth tests and iPhone Safari app QA remain unverified and are not marked complete.
