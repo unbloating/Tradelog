@@ -453,7 +453,7 @@ function renderTrades(){
   const rows=document.querySelector("#dashboard .rows");
   if(!rows)return;
   const recent=state.trades.slice(-5).reverse();
-  if(!recent.length)return;
+  if(!recent.length){rows.innerHTML="<div class='muted'>No trades yet. Add your first trade.</div>";return;}
   rows.innerHTML=recent.map(t=>{
     const r=Number(t.r||0), sign=r>=0?"+":"";
     const cls=r>=0?"good":"bad";
@@ -562,7 +562,6 @@ $("#startChat").onclick=startChat;$("#sendChat").onclick=sendChat;$("#chatInput"
     $("#profileBio").value=state.profile.bio||"Process over prediction.";
     document.querySelector("#profile h2").textContent="@"+(state.profile.username||"yourname");
   }
-  renderTrades();
   loadCloudTrades();
   loadProfile();
   loadStrategies();
