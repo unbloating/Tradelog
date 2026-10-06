@@ -1,0 +1,87 @@
+name: CIPH static checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, ciph-public-release-checklist]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check inline JavaScript syntax
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.in_script = False
+                  self.external = False
+                  self.parts = []
+                  self.scripts = []
+
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script":
+                      attrs = dict(attrs)
+                      self.in_script = True
+                      self.external = bool(attrs.get("src"))
+                      self.parts = []
+
+              def handle_data(self, data):
+                  if self.in_script and not self.external:
+                      self.parts.append(data)
+
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.in_script:
+                      if not self.external and "".join(self.parts).strip():
+                          self.scripts.append("".join(self.parts))
+                      self.in_script = False
+                      self.external = False
+                      self.parts = []
+
+          source = Path("index.html").read_text(encoding="utf-8")
+          parser = Scripts()
+          parser.feed(source)
+          if not parser.scripts:
+              raise SystemExit("No inline JavaScript found to check.")
+          out = Path("/tmp/ciph-inline")
+          out.mkdir(exist_ok=True)
+          for i, script in enumerate(parser.scripts, start=1):
+              path = out / f"script-{i}.js"
+              path.write_text(script, encoding="utf-8")
+              print(path)
+          print(f"Extracted {len(parser.scripts)} inline script block(s).")
+          PY
+          for file in /tmp/ciph-inline/*.js; do
+            echo "Checking $file"
+            node --check "$file"
+          done
+
+      - name: Check manifest JSON
+        run: python3 -m json.tool manifest.webmanifest > /dev/null
+
+      - name: Reject service-role credentials in frontend files
+        shell: bash
+        run: |
+          if grep -nE 'service_role_[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}' index.html; then
+            echo "Potential Supabase server-side secret found in index.html."
+            exit 1
+          fi
+          echo "No recognizable Supabase service-role/secret key pattern found in index.html."
