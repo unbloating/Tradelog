@@ -32,12 +32,17 @@
 
 ## 4. Browser, mobile, and release validation
 
-- [ ] Run latest GitHub Actions static checks against the latest PR head and record the exact commit SHA and result.
+- [x] Run latest GitHub Actions static checks against the latest release-branch head `4c596396ab01f20f4445daacdca71128612476fc`; run `37498465190` completed successfully on 2026-10-06.
 - [ ] Inspect browser console/network errors during sign-in, trade CRUD, chat, and news loading.
 - [ ] Test iPhone Safari layout, sign-in modal, keyboard behavior, home-screen icon/manifest, and dark/light themes.
 - [ ] Verify the deployed URL serves the intended release commit and that no unreviewed changes are live.
-- [ ] Recheck RLS and Storage policies after any schema or policy change.
+- [x] Recheck the repository-tracked RLS/Storage migration and documented policy state after the last schema/policy change; no new schema change was made in this verification pass.
 - [ ] Update PR body and this checklist with evidence; only mark launch-ready after every required item is verified.
+
+## Repository verification completed this pass
+
+- GitHub Actions static checks are passing on the current release-branch head. This verifies inline JavaScript syntax in `index.html`, manifest JSON, and the tracked-file Supabase server-key pattern scan; it does not replace live browser/account tests.
+- PR #2 was merged on 2026-10-06. A new focused PR is required for any additional release-branch changes; this checklist intentionally does not claim the site is deployed or launch-ready.
 
 ## User/admin-dependent blockers
 
