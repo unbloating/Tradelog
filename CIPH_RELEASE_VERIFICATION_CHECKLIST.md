@@ -57,7 +57,7 @@
 - Avatar storage bucket: public-read, limited to 2 MB, accepts image MIME types only; authenticated upload/update policies scope paths to the caller's own folder.
 - Security Advisor findings: leaked-password protection is disabled; the authenticated SECURITY DEFINER warning for create_direct_conversation remains and has been reviewed as intentional with validation and restricted grants.
 - The in-app headline tone/outlook is heuristic and can be delayed; it must not be presented as a verified live-price signal.
-- Static CI result for this follow-up is pending until GitHub Actions completes.
+- Static CI passed: run 37955566843 on commit 710be1083eded587a289555614edf9aee5d1f263 and PR run 37955774385 on commit 71de092a3435c3252407867d9324cc19a939edc7. See PR Checks for the latest head.
 
 ## Not verified here — blockers
 
