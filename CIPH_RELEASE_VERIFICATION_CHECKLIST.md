@@ -2,7 +2,7 @@
 
 **Goal:** Close the remaining launch blockers with evidence, without weakening account privacy or claiming tests that were not run.  
 **Branch:** ciph-public-release-checklist  
-**Draft PR:** Pending creation for this follow-up; PR #2 was merged on 2026-10-06.  
+**Draft PR:** PR #3 is open in draft state at https://github.com/unbloating/Tradelog/pull/3; PR #2 was merged on 2026-10-06.  
 **Status:** In progress — not launch-ready.
 
 ## 1. Supabase authentication hardening
