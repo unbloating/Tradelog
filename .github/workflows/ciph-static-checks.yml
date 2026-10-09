@@ -56,23 +56,57 @@ jobs:
                       self.external = False
                       self.parts = []
 
-          source = Path("index.html").read_text(encoding="utf-8")
-          parser = Scripts()
-          parser.feed(source)
-          if not parser.scripts:
-              raise SystemExit("No inline JavaScript found to check.")
+          html_files = sorted(Path(".").glob("*.html"))
+          if not html_files:
+              raise SystemExit("No root HTML files found.")
           out = Path("/tmp/ciph-inline")
           out.mkdir(exist_ok=True)
-          for i, script in enumerate(parser.scripts, start=1):
-              path = out / f"script-{i}.js"
-              path.write_text(script, encoding="utf-8")
-              print(path)
-          print(f"Extracted {len(parser.scripts)} inline script block(s).")
+          total = 0
+          for html_file in html_files:
+              parser = Scripts()
+              parser.feed(html_file.read_text(encoding="utf-8"))
+              for i, script in enumerate(parser.scripts, start=1):
+                  path = out / f"{html_file.stem}-script-{i}.js"
+                  path.write_text(script, encoding="utf-8")
+                  print(path)
+                  total += 1
+              print(f"{html_file}: {len(parser.scripts)} inline script block(s)")
+          if total == 0:
+              raise SystemExit("No inline JavaScript found in root HTML files.")
+          print(f"Extracted {total} inline JavaScript block(s) from {len(html_files)} HTML files.")
           PY
           for file in /tmp/ciph-inline/*.js; do
             echo "Checking $file"
             node --check "$file"
           done
+
+
+      - name: Check core CIPH feature markers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path("index.html").read_text(encoding="utf-8")
+          checks = {
+              "integrated headline feed": 'id="biasNews"',
+              "directional verdict": 'id="biasVerdict"',
+              "daily trading outlook": 'id="dailyOutlook"',
+              "potential-results calculator": "Potential calculator",
+              "username/profile discovery": "username",
+              "public profile/template visibility": "is_public",
+              "manual Instagram profile links": "instagram_url",
+              "manual Discord profile links": "discord_url",
+              "manual X profile links": "x_url",
+              "account-scoped trade reads": '.eq("user_id",session.user.id)',
+              "validated direct-chat RPC": "create_direct_conversation",
+              "Forex Factory calendar link": "https://www.forexfactory.com/calendar",
+              "Forex Factory news link": "https://calendar.forexfactory.com/news",
+          }
+          missing = [name for name, marker in checks.items() if marker not in source]
+          if missing:
+              raise SystemExit("Missing required CIPH feature marker(s): " + ", ".join(missing))
+          print(f"Verified {len(checks)} core CIPH feature markers.")
+          PY
 
       - name: Check manifest JSON
         run: python3 -m json.tool manifest.webmanifest > /dev/null

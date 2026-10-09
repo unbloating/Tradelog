@@ -1,96 +1,46 @@
 # CIPH Public Launch Checklist
 
-Use this checklist to verify CIPH before merging the release branch or announcing the app publicly. Check an item only after it has been tested and confirmed.
+Do not announce CIPH as launch-ready until the open tests below are complete.
 
-## 1. Account access and privacy
+## Account access and privacy
+- [ ] Test signup, email confirmation, sign-in, sign-out, and password reset with real accounts.
+- [ ] Use two independent accounts to verify trade/journal data and private messages stay account-scoped.
+- [x] Code inspection confirms trade reads filter by the signed-in user ID and clear visible rows on failed/empty loads.
+- [x] Database review confirms all 13 public tables have RLS enabled; live two-account testing is still required.
+- [ ] Test public profile and template discovery, manual social links, and chat membership with real sessions.
 
-- [ ] Create a new account with a never-used email.
-- [ ] Confirm email verification works from the actual email received.
-- [ ] Sign in, sign out, then sign in again.
-- [ ] Test forgot-password and complete a password reset from the email link.
-- [ ] Confirm an unauthenticated visitor cannot view private journal entries.
-- [ ] Create two separate test accounts and verify each account sees only its own trades, journal notes, P&L, and private data.
-- [x] Inspect sign-out flow and verify the code clears in-memory state and avoids re-rendering stale dashboard rows; still perform live two-account testing before release.\n- [x] Add explicit signed-in `user_id` filters to both dashboard trade reads, clear in-memory dashboard rows when cloud trade loading fails, and stop writing cloud trade rows to shared browser storage after a successful save (live account tests still required).
-- [x] Remove the policy that let signed-in users add themselves to any conversation; direct conversation creation is now routed through a validated authenticated RPC.
-- [ ] Verify direct messages are visible only to conversation members using two real test accounts.
-- [ ] Confirm public profiles reveal only the intended profile fields.
-- [ ] Confirm profile social links are manual links only; no broken OAuth sign-in integrations are required.
+## Supabase
+- [x] Review trade, message, profile, strategy, conversation, and storage policies.
+- [x] Verify the avatar bucket is public-read, limited to 2 MB and image MIME types, with owner-folder upload/update policies.
+- [ ] Enable leaked-password protection in Supabase Auth settings.
+- [ ] Verify site/redirect URLs, password-reset redirects, and email sender settings in the dashboard.
 
-## 2. Supabase security settings
+## Journal and trading tools
+- [ ] Test trade create/edit/delete and persistence after reload.
+- [ ] Compare dashboard P&L, win rate, and totals against known sample data.
+- [ ] Test the potential win-rate/P&L calculator with known examples.
+- [ ] Test strategy/template saving, visibility, and account scoping.
+- [ ] Verify legacy local data cannot overwrite cloud data or appear as another account's data.
 
-- [x] Remove the policy that allowed any signed-in user to add themselves to any conversation.
-- [x] Restrict the direct-conversation creation RPC to authenticated users and validate its target.
-- [x] Remove duplicate permissive profile and strategy policies.
-- [x] Remove additional redundant trade/social/like policies and block direct creation of empty conversations outside the validated RPC.
-- [ ] In Supabase Auth settings, enable leaked-password protection.
-- [x] Recheck Supabase Security Advisor; remaining warnings are documented below.
-- [x] Verify all 13 public tables have Row Level Security enabled and inspect the public-schema policies.
-- [x] Check avatar storage bucket is public-read, limited to image MIME types and 2 MB, with uploads scoped to the owner's folder.
-- [ ] Verify production redirect URLs, site URL, email sender settings, and password-reset redirect URLs in the dashboard.
+## CIPH News & Bias
+- [x] Keep the integrated headline feed and cautious rule-based directional outlook in index.html; news.html redirects to index.html?view=bias.
+- [x] Include official Forex Factory calendar/news links alongside the existing economic-calendar link; CIPH does not scrape or republish Forex Factory content.
+- [x] Keep notification wording limited to page-open alerts when browser permission is granted.
+- [ ] Test feed freshness, source attribution, error/fallback behavior, and external links on desktop and iPhone Safari.
+- [ ] Verify event times on the source calendar and test notification permission granted/denied states.
 
-## 3. Journal and trading tools
+## Mobile and deployment
+- [x] Extend static CI to check inline JavaScript across root HTML files, manifest JSON, core feature markers, and recognizable server-side key patterns.
+- [ ] Verify static CI succeeds on the exact final PR head.
+- [ ] Test iPhone Safari, narrow widths, keyboard behavior, accessibility basics, and browser console/network errors.
+- [ ] Verify the public URL and hosting workflow serve the intended merged commit.
+- [ ] Record a rollback point and deployed commit before announcing the release.
 
-- [ ] Create, edit, and delete a trade using a real account; reload and confirm it persists.
-- [ ] Confirm trade history, win rate, P&L, and dashboard totals agree with the saved trades.
-- [ ] Test the potential win-rate / P&L calculator with known example values.
-- [ ] Confirm strategy templates load, save, and remain scoped to the correct account.
-- [ ] Verify importing or migrating legacy local journal data does not overwrite cloud data.
-- [x] Inspect the sign-out and empty-dashboard code paths for stale data handling.
-- [ ] Check that the deployed app handles network errors and expired sessions without exposing private data.
+## Evidence — 2026-10-09
+- Supabase project status: ACTIVE_HEALTHY.
+- RLS: 13 of 13 public tables enabled.
+- Avatar storage: public-read, 2 MB limit, image MIME types only; uploads/updates scoped to the caller's folder.
+- Security Advisor has two warnings: leaked-password protection is disabled (dashboard action required), and the authenticated direct-chat SECURITY DEFINER function is callable by authenticated users. The function was reviewed: it validates caller/target, uses an empty locked search_path, and has no anon EXECUTE grant.
+- Real email tests, two-account privacy tests, live journal/calculator tests, iPhone Safari QA, and deployed-site verification remain outstanding.
 
-## 4. CIPH news and market information
-
-- [x] Add a standalone public news-first page at `news.html` that requires no sign-in or Supabase access.
-- [x] Use clearly labeled links to Forex Factory's official calendar and news pages. Its published terms prohibit unauthorized copying/redistribution; no permitted API/embed/feed was established, so CIPH does not scrape or republish its content.
-- [x] Add a Nasdaq-focused preparation brief without claiming live bias, guaranteed direction, invented event rows, or dependable push notifications.
-- [x] Display the device-local clock and detected timezone; instruct users to verify event times and impact on the source calendar.
-- [ ] Manually test the new page and outbound source links on desktop and iPhone Safari.
-
-- [x] Inspect source links: Forex Factory calendar and breaking-news links are present.
-- [x] Inspect notification copy: alerts are described as operating while CIPH is open and notifications are permitted, not as guaranteed price predictions.
-- [ ] Verify event timestamps and timezone behavior with a known upcoming event.
-- [ ] Test high-impact news notifications on a supported device and confirm permission-denied states are handled.
-- [ ] Check Nasdaq bias/market analysis for clear timestamps and source attribution in the running app.
-- [ ] Verify unavailable or delayed market/news data is clearly labeled instead of presented as live.
-- [x] Provide a useful static fallback if the external source is unavailable: source links and educational Nasdaq preparation guidance remain visible without fetching external content.
-
-## 5. Mobile and interface quality
-
-- [ ] Test the deployed app on iPhone Safari.
-- [ ] Test sign-in, account creation, password recovery, journal entry, chat, and news links on mobile.
-- [ ] Check layout at narrow screen widths and with the keyboard open.
-- [x] Inspect the source for CIPH logo, app icon/manifest, dark interface, and responsive breakpoints.
-- [ ] Confirm there are no dead buttons, placeholder actions, or OAuth options that no longer work in a live browser session.
-- [ ] Check accessibility basics: readable contrast, labels, focus states, and useful error messages.
-
-## 6. Release and deployment
-
-- [x] Record the latest RLS cleanup in a repository migration file on the release branch.\n- [x] Add a GitHub Actions workflow for inline JavaScript syntax checks, manifest JSON validation, and a recognizable Supabase server-side key scan across all tracked files; the latest code/workflow run passed.
-- [ ] Run the available build, lint, and automated tests; record any missing test coverage.
-- [ ] Confirm the release changes are merged into the deployment branch.
-- [ ] Verify the hosting workflow completes successfully for the exact release commit.
-- [ ] Open the public URL in a fresh/private browser session and confirm the expected version is deployed.
-- [ ] Re-test sign-in and a saved journal entry on the deployed URL, not only in a development preview.
-- [ ] Check browser console and network errors on the deployed site.
-- [ ] Scan the full release artifact for private credentials and confirm no service-role secret is included in frontend files.
-- [ ] Keep a rollback point and note the deployed commit before announcing the release.
-
-## Latest verification results
-
-- **Database:** Project reports healthy. All 13 public tables have RLS enabled.
-- **Applied in production:** conversation-membership hardening, authenticated-only validated direct-chat RPC, duplicate permissive policy cleanup, and removal of redundant trade/social/like policies plus the direct conversation insert policy.
-- **Repository:** corresponding policy cleanup migration added to the `ciph-public-release-checklist` branch.\n- **Latest code hardening:** both dashboard trade reads explicitly filter by the authenticated user ID; failed cloud trade loads clear visible in-memory rows; saving a cloud trade no longer copies the trade list into localStorage. Commits: `fbfed6862b77c9d953e93adbd9e3dd2dff1a2aff`, `de22e8342a5eda7bba6a1736c6baf2dc3a650912`.\n- **Static CI:** `.github/workflows/ciph-static-checks.yml` added in commit `c6ded4485e83c22724073b55a684fe4a3104493d`; successful runs verified inline JavaScript syntax, manifest JSON, and key-pattern scanning. The strengthened workflow passed on commit `2a83c582034ec733d5c7697898f410f9b79f5f80`, including the full tracked-file key-pattern scan.
-- **Remaining Supabase Security Advisor warnings:**
-  1. **Leaked password protection is disabled.** This is an Auth dashboard setting and must be enabled by a project admin.
-  2. **Authenticated SECURITY DEFINER function warning for `create_direct_conversation`.** The RPC is intentionally callable by authenticated users for chat creation; it validates the signed-in caller and target profile, uses a locked search path, and is not executable by anon. Review the warning rather than blindly disabling this required feature.
-- **Not verified in this environment:** real sign-up/verification/reset emails, two-account end-to-end privacy tests, trade CRUD against a real session, iPhone Safari QA, browser console/network behavior, and successful production deployment of the release branch.
-- **Release decision:** not launch-ready until the remaining dashboard setting and live-device/account tests are completed. Do not check items solely because code was inspected.
-
-
-## Free public news scope (2026-10-06)
-
-- Daily news page `news.html` updated in commit `0088fda36b701264f25c3b2650777a6aa0e872ca` to show recent public business/macro headlines in-app using the GDELT DOC API, with a cautious rule-based headline-risk summary instead of Forex Factory links.
-- The assessment is explicitly not a guaranteed “good day” signal: it uses headline keyword counts and does not verify the full economic calendar or live price action.
-- Existing journal, database, and account-backed features were not removed or migrated. The news page remains standalone and does not initialize Supabase.
-- Previous GitHub Pages deployment succeeded; the new in-app headline version needs a fresh deployment check and real-device API/CORS verification.
-- Real-account privacy/auth tests and iPhone Safari app QA remain unverified and are not marked complete.
+**Release decision: not launch-ready.**
