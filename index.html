@@ -193,7 +193,9 @@ async function loadBiasNews(silent=false){
   const url="https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(rss);
   const res=await fetch(url,{cache:"no-store"});if(!res.ok)throw new Error("News service returned "+res.status);
   const data=await res.json();if(!Array.isArray(data.items)||!data.items.length)throw new Error("No headlines returned");
-  window.biasHeadlineItems=data.items.slice(0,12);
+  const nowMs=Date.now(),dayMs=24*60*60*1000;
+  const recentItems=data.items.filter(item=>{const t=item.pubDate?Date.parse(item.pubDate):NaN;return !Number.isFinite(t)||(nowMs-t)<=dayMs;});
+  window.biasHeadlineItems=(recentItems.length?recentItems:data.items).slice(0,12);
   const alertOn=$("#biasAlertsToggle")?.checked&&("Notification" in window)&&Notification.permission==="granted";
   if(alertOn){for(const item of data.items.slice(0,20)){const title=item.title||"",key=String(item.link||title);if(!majorNewsIds.has(key)){majorNewsIds.add(key);if(isMajorHeadline(title)&&!silent){try{new Notification("Major market news alert",{body:title.slice(0,180),tag:"bias-"+key.slice(0,80)})}catch(e){}}}}}
   if(alertOn&&silent)setBiasAlertStatus("Alerts on · last checked "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+". Notifications work while the page is open.");
@@ -390,7 +392,9 @@ $("#authClose").onclick=closeAuth;
 $("#authSwitch").onclick=()=>setAuthMode(authMode==="signup"?"signin":"signup");
 $("#authForgot").onclick=()=>setAuthMode("reset");
 $("#authShow").onclick=()=>{const i=$("#authPassword"),show=i.type==="password";i.type=show?"text":"password";$("#authShow").textContent=show?"Hide":"Show"};
-$("#authSubmit").onclick=submitAuth;
+$("#authSubmit").onclick=(event)=>{if(event)event.preventDefault();submitAuth();};
+// Submit authentication with Enter as well as the button, including on mobile.
+["authEmail","authPassword","authConfirm"].forEach(id=>$("#"+id)?.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.isComposing){event.preventDefault();submitAuth();}}));
 $("#authDialog").addEventListener("click",e=>{if(e.target===e.currentTarget)closeAuth()});
 $("#authDialog").addEventListener("keydown",e=>{if(e.key==="Escape")closeAuth()});
 
