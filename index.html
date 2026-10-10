@@ -114,6 +114,34 @@ body{overflow-x:hidden}.app{min-height:100vh;background:radial-gradient(circle a
     <p class="auth-note">🔒 Your trades, notes and P&amp;L stay private to your account.</p>
   </div>
 </dialog>
+<script>
+/* CIPH auth click fallback: capture clicks before other handlers so the account controls remain responsive. */
+document.addEventListener("click",function(event){
+  const switchButton=event.target.closest("#authSwitch");
+  if(switchButton){
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if(typeof authMode!=="undefined"&&authMode==="verify"){
+      const email=document.getElementById("authEmail").value.trim().toLowerCase();
+      if(!email){authMessage("error","Enter your email address first.");return;}
+      window.supabase && window.supabase.createClient;
+      supabaseClient.auth.resend({type:"signup",email}).then(({error})=>{
+        if(error)authMessage("error",authErrorText(error));
+        else authMessage("success","A new verification email was requested. Check your inbox and spam folder.");
+      }).catch(error=>authMessage("error",authErrorText(error)));
+      return;
+    }
+    setAuthMode(authMode==="signup"?"signin":"signup");
+    return;
+  }
+  const submitButton=event.target.closest("#authSubmit");
+  if(submitButton){
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    submitAuth();
+  }
+},true);
+</script>
 <main class="wrap">
 <section id="dashboard">
 <section class="hero"><div><div class="eyebrow">Personal trading OS</div><h1>Trade with data. Journal with purpose.</h1><p>Track setups, mistakes, execution and the version of your strategy you want to become.</p></div><div class="actions"><button class="btn" id="newTrade">＋ Log trade</button><button class="btn primary" id="newStrategy">＋ Strategy template</button></div></section>
@@ -392,7 +420,7 @@ function setAuthMode(mode){authMode=mode;authMessage();$("#authCodeWrap").classL
 function openAuth(mode="signin"){setAuthMode(mode);if(!$("#authDialog").open)$("#authDialog").showModal()}
 function closeAuth(){if($("#authDialog").open)$("#authDialog").close();authMessage()}
 function authErrorText(error){const m=(error?.message||"").trim();if(/invalid login credentials/i.test(m))return "Email or password is incorrect.";if(/email not confirmed/i.test(m))return "Please verify your email address before signing in.";if(/user already registered/i.test(m))return "An account with this email already exists. Try signing in instead.";if(/password should be at least/i.test(m))return "Password must be at least 8 characters.";if(/rate limit/i.test(m))return "Too many attempts. Please wait a moment and try again.";return m||"Something went wrong. Please try again."}
-async function submitAuth(){if(authBusy)return;authBusy=true;const submit=$("#authSubmit");submit.disabled=true;submit.textContent="Please wait…";$("#authDialog").classList.add("loading");authMessage();try{const email=$("#authEmail").value.trim().toLowerCase(),password=$("#authPassword").value,confirmPassword=$("#authConfirm").value,code=$("#authCode").value.trim();if(!email){authMessage("error","Enter your email address.");return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authMessage("error","Enter a valid email address.");return}if(authMode==="verify"){if(!/^\d{6,8}$/.test(code)){authMessage("error","Enter the verification code from your email.");return}const verified=await supabaseClient.auth.verifyOtp({email,token:code,type:"signup"});if(verified.error){authMessage("error",authErrorText(verified.error));return}closeAuth();toast("Email verified. Your CIPH account is ready.");await refreshAuth();return}if(authMode!=="reset"&&password.length<8){authMessage("error","Password must be at least 8 characters.");return}if((authMode==="signup"||authMode==="newpassword")&&password!==confirmPassword){authMessage("error","Passwords do not match.");return}let r;if(authMode==="signin")r=await supabaseClient.auth.signInWithPassword({email,password});else if(authMode==="signup")r=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:EMAIL_REDIRECT_URL}});else if(authMode==="reset")r=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:EMAIL_REDIRECT_URL});else r=await supabaseClient.auth.updateUser({password});if(r.error){authMessage("error",authErrorText(r.error))}else if(authMode==="signin"){closeAuth();toast("Signed in.");}else if(authMode==="signup"){if(r.data?.session){closeAuth();toast("Account created and signed in.");}else{setAuthMode("verify");authMessage("success","We sent a verification email. Enter its one-time code below to activate your account.");}}else if(authMode==="reset"){authMessage("success","Reset email sent. Check your inbox for the secure link.");}else{history.replaceState({},document.title,window.location.pathname);closeAuth();toast("Password updated.");}await refreshAuth()}catch(error){authMessage("error","Could not reach the sign-in service. Check your connection and try again. Details: "+(error?.message||"unknown error"))}finally{authBusy=false;submit.disabled=false;submit.textContent=authMode==="signin"?"Sign in":authMode==="signup"?"Create account":authMode==="verify"?"Verify code":authMode==="reset"?"Send reset link":"Update password";$("#authDialog").classList.remove("loading")}}
+async function submitAuth(){if(authBusy)return;authBusy=true;const submit=$("#authSubmit");submit.disabled=true;submit.textContent="Please wait…";$("#authDialog").classList.add("loading");authMessage();try{const email=$("#authEmail").value.trim().toLowerCase(),password=$("#authPassword").value,confirmPassword=$("#authConfirm").value,code=$("#authCode").value.trim();if(!email){authMessage("error","Enter your email address.");return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authMessage("error","Enter a valid email address.");return}if(authMode==="verify"){if(!/^\d{6,8}$/.test(code)){authMessage("error","Enter the verification code from your email.");return}const verified=await supabaseClient.auth.verifyOtp({email,token:code,type:"email"});if(verified.error){authMessage("error",authErrorText(verified.error));return}closeAuth();toast("Email verified. Your CIPH account is ready.");await refreshAuth();return}if(authMode!=="reset"&&password.length<8){authMessage("error","Password must be at least 8 characters.");return}if((authMode==="signup"||authMode==="newpassword")&&password!==confirmPassword){authMessage("error","Passwords do not match.");return}let r;if(authMode==="signin")r=await supabaseClient.auth.signInWithPassword({email,password});else if(authMode==="signup")r=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:EMAIL_REDIRECT_URL}});else if(authMode==="reset")r=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:EMAIL_REDIRECT_URL});else r=await supabaseClient.auth.updateUser({password});if(r.error){authMessage("error",authErrorText(r.error))}else if(authMode==="signin"){closeAuth();toast("Signed in.");}else if(authMode==="signup"){if(r.data?.session){closeAuth();toast("Account created and signed in.");}else{setAuthMode("verify");authMessage("success","We sent a verification email. Enter its one-time code below to activate your account.");}}else if(authMode==="reset"){authMessage("success","Reset email sent. Check your inbox for the secure link.");}else{history.replaceState({},document.title,window.location.pathname);closeAuth();toast("Password updated.");}await refreshAuth()}catch(error){authMessage("error","Could not reach the sign-in service. Check your connection and try again. Details: "+(error?.message||"unknown error"))}finally{authBusy=false;submit.disabled=false;submit.textContent=authMode==="signin"?"Sign in":authMode==="signup"?"Create account":authMode==="verify"?"Verify code":authMode==="reset"?"Send reset link":"Update password";$("#authDialog").classList.remove("loading")}}
 $("#authBtn").onclick=()=>{if(currentAuthSession){supabaseClient.auth.signOut().then(()=>{toast("Signed out.");refreshAuth()}).catch(()=>{toast("Could not sign out. Check your connection.")});return}openAuth("signin")};
 $("#authClose").onclick=closeAuth;
 $("#authSwitch").onclick=async()=>{if(authMode==="verify"){const email=$("#authEmail").value.trim().toLowerCase();if(!email){authMessage("error","Enter your email address first.");return}try{const {error}=await supabaseClient.auth.resend({type:"signup",email});if(error)authMessage("error",authErrorText(error));else authMessage("success","A new verification email was requested. Check your inbox and spam folder.");}catch(error){authMessage("error",authErrorText(error))}return}setAuthMode(authMode==="signup"?"signin":"signup")};
