@@ -4,11 +4,11 @@ project_id = "YOUR_SUPABASE_PROJECT_ID"
 enable_signup = true
 
 [auth.external.discord]
-enabled = true
+enabled = false
 client_id = "env(SUPABASE_AUTH_DISCORD_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_DISCORD_SECRET)"
 
 [auth.external.google]
-enabled = true
+enabled = false
 client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"

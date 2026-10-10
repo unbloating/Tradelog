@@ -2,7 +2,7 @@
 
 **Goal:** Close the remaining launch blockers with evidence, without weakening account privacy or claiming tests that were not run.  
 **Branch:** ciph-public-release-checklist  
-**Draft PR:** PR #3 is open in draft state at https://github.com/unbloating/Tradelog/pull/3; PR #2 was merged on 2026-10-06.  
+**Draft PR:** PR #3 remains open in draft state at https://github.com/unbloating/Tradelog/pull/3; PR #2 was merged on 2026-10-06.  
 **Status:** In progress — not launch-ready.
 
 ## 1. Supabase authentication hardening
@@ -11,7 +11,8 @@
 - [x] Re-run Supabase Security Advisor on 2026-10-09 and record both findings below.
 - [x] Review the authenticated create_direct_conversation SECURITY DEFINER warning. The function validates auth.uid(), rejects null/self targets, permits only public target profiles, uses an empty locked search_path, and checks membership before creating a conversation. EXECUTE is granted to authenticated, postgres, and service_role; anon has no grant. Keep the warning documented rather than weakening chat security.
 - [ ] Verify email confirmation, password reset, sign-out, and repeat sign-in using real accounts.
-- [ ] Verify production site URL, redirect allow-list, password-reset redirect URLs, and email sender settings in the Supabase dashboard.
+- [ ] Verify production site URL, redirect allow-list, password-reset redirect URLs, email sender settings, and hosted Google/Discord provider toggles in the Supabase dashboard.
+- [x] Disable Google/Discord OAuth in repository-local `supabase/config.toml` to match manual social-profile links; this does not change hosted Supabase settings.
 
 ## 2. Account isolation and chat privacy
 
@@ -41,30 +42,34 @@
 
 ## 5. Browser, mobile, and release validation
 
-- [x] Synchronize the release branch with the latest main tree using merge commit 981953ca1de8be5a89a710bfe82cb5978f3add54 so the follow-up does not revert the current CIPH UI.
-- [x] Expand static checks to syntax-check inline JavaScript in every root HTML page, validate the web manifest, scan tracked files for recognizable Supabase server-side key patterns, and guard required CIPH feature markers.
-- [ ] Verify GitHub Actions succeeds on the exact final PR head and record the run ID.
+- [x] Reconcile the release branch with the current main app tree at `7db9f9a8ddda29a05b778823de62695d26da476c`, preserving the latest email-OTP verification flow and actual logged-trade journal history while retaining CIPH branding and official Forex Factory source links.
+- [x] Expand static checks to syntax-check inline JavaScript in every root HTML page, validate the web manifest, scan tracked files for recognizable Supabase server-side key patterns, guard core CIPH feature markers, and assert email OTP/journal-history markers plus disabled local social OAuth.
+- [ ] Verify GitHub Actions succeeds on the exact final PR head; record the latest run in the PR description after the final checklist-only update.
 - [ ] Test desktop and iPhone Safari layout, sign-in modal, keyboard behavior, home-screen icon/manifest, and dark/light themes.
 - [ ] Inspect browser console/network errors during sign-in, trade CRUD, chat, and news loading.
 - [ ] Verify the public URL serves the intended merged commit; do not claim deployment before checking it.
 - [ ] Review the draft PR and merge only after the remaining required tests are complete.
 
-## Latest verification evidence — 2026-10-09
+## Latest verification evidence — 2026-10-10
 
-- Repository main head at sync time: 6d965fbd081c574d8113bf3d85ddb55b83ae160b. Release branch was reconciled with that tree before the follow-up changes.
+- Current main head inspected: `7db9f9a8ddda29a05b778823de62695d26da476c` (“Show real logged trades in the journal history”). The release branch was behind main in commit history; the release candidate now uses the current main app tree while retaining its CIPH branding, official Forex Factory source links, release checks, and checklists.
+- The updated app source includes email one-time-code verification and the actual `journalTradeHistory` view that renders saved trades. This is source inspection, not a substitute for real inbox/account testing.
+- Main Pages workflow run [38009376736](https://github.com/unbloating/Tradelog/actions/runs/38009376736) completed successfully for main commit `7db9f9a8ddda29a05b778823de62695d26da476c`; it does not deploy the unmerged draft PR.
 - Supabase project status: ACTIVE_HEALTHY.
 - Database query: 13 of 13 public tables have RLS enabled.
 - Avatar storage bucket: public-read, limited to 2 MB, accepts image MIME types only; authenticated upload/update policies scope paths to the caller's own folder.
-- Security Advisor findings: leaked-password protection is disabled; the authenticated SECURITY DEFINER warning for create_direct_conversation remains and has been reviewed as intentional with validation and restricted grants.
+- Security Advisor findings observed on 2026-10-10: leaked-password protection is disabled; the authenticated SECURITY DEFINER warning for `create_direct_conversation` remains. Its caller/target validation, locked empty `search_path`, membership checks, and lack of anon EXECUTE were reviewed; do not weaken chat security to silence the warning.
+- **Migration-history drift confirmed:** live Supabase history lists 11 applied versions (from `20260927165415` through `20261006153319`), while the repository contains only two migration files. The repository cleanup migration is named `20261006153300_remove_redundant_policies_and_lock_conversation_creation.sql`, but the live applied version is `20261006153319`. No migration was applied. Do not run `db push` until the missing history is recovered or a non-destructive baseline is reviewed.
+- Repository-local `supabase/config.toml` now disables Google and Discord OAuth to match manual social links. This does not verify or change hosted Auth provider toggles.
 - The in-app headline tone/outlook is heuristic and can be delayed; it must not be presented as a verified live-price signal.
-- Static CI passed on PR head 7da3b79277c1642f4f590e4fc91de3d8f253e955 (push run 37956138367; PR run 37956145710). All steps passed: inline JavaScript syntax, core feature markers, manifest JSON, and server-side key-pattern scan.
 
 ## Not verified here — blockers
 
-- Supabase dashboard-only leaked-password setting and production Auth/email configuration.
-- Actual inbox-based verification/reset tests.
+- Supabase dashboard-only leaked-password protection, production Auth/email settings, and hosted social-provider toggles.
+- Actual inbox-based confirmation/OTP and password-reset tests.
 - Two independent signed-in sessions and end-to-end account/chat privacy tests.
-- Live trade CRUD/calculator/template tests.
-- iPhone Safari QA, browser console/network inspection, and deployed-URL verification.
+- Live trade create/edit/delete, dashboard totals, calculator, template visibility, and legacy-data tests.
+- iPhone Safari QA, browser console/network inspection, news-feed fallback/attribution tests, notification permission states, and deployed-URL verification.
+- Migration-history reconciliation before any future migration deployment.
 
 **Release decision:** not launch-ready. Never paste secrets or service-role keys into code, issues, or chat.

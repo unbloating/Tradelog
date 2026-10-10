@@ -99,6 +99,10 @@ jobs:
               "manual X profile links": "x_url",
               "account-scoped trade reads": '.eq("user_id",session.user.id)',
               "validated direct-chat RPC": "create_direct_conversation",
+              "email verification code UI": 'id="authCodeWrap"',
+              "email OTP verification": "verifyOtp",
+              "actual journal trade history": 'id="journalTradeHistory"',
+              "saved trades render in journal history": "renderJournalTradeHistory",
               "Forex Factory calendar link": "https://www.forexfactory.com/calendar",
               "Forex Factory news link": "https://calendar.forexfactory.com/news",
           }
@@ -106,6 +110,19 @@ jobs:
           if missing:
               raise SystemExit("Missing required CIPH feature marker(s): " + ", ".join(missing))
           print(f"Verified {len(checks)} core CIPH feature markers.")
+          PY
+
+      - name: Check local social OAuth providers remain disabled
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          config = Path("supabase/config.toml").read_text(encoding="utf-8")
+          for provider in ("discord", "google"):
+              expected = f"[auth.external.{provider}]\nenabled = false"
+              if expected not in config:
+                  raise SystemExit(f"Local Supabase config unexpectedly enables {provider} OAuth.")
+          print("Local Google/Discord OAuth providers are disabled. Hosted dashboard settings are not covered by this check.")
           PY
 
       - name: Check manifest JSON
