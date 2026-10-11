@@ -49,4 +49,16 @@ Do not announce CIPH as launch-ready until the open tests below are complete.
 - Local config disables Google/Discord OAuth; hosted Auth settings still require dashboard verification.
 - Real email/two-account privacy tests, live journal/calculator/template tests, iPhone Safari QA, and deployed-site verification remain outstanding.
 
+
+## Recheck — 2026-10-11
+
+- [x] Created and linked the focused [migration-history reconciliation checklist](CIPH_MIGRATION_HISTORY_RECONCILIATION.md); no database changes were made.
+- [x] Read-only live schema inventory again reports all 13 public tables have RLS enabled.
+- [x] Live migration history lists 11 versions; repository contains two SQL migration files. The initial and cleanup filenames do not match the live version names, and nine intermediate migration files are absent locally.
+- [x] Confirmed live username constraint permits 1–24 characters while the local initial SQL declares 3–24. This remains a documented drift item, not a change request approved for production.
+- [x] Latest Security Advisor still reports leaked-password protection disabled and the authenticated direct-chat SECURITY DEFINER warning. No policies or grants were weakened.
+- [ ] Inspect the newest GitHub Actions run triggered by this checklist commit and record its result before treating static CI as current.
+- [ ] Recover exact missing migration SQL and review a non-destructive reconciliation plan before any database deployment.
+- [ ] Dashboard settings, email inbox, real-account isolation, live journal/calculator/template tests, iPhone Safari QA, browser console/network inspection, and deployed URL still require hands-on verification.
+
 **Release decision: not launch-ready.**
