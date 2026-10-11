@@ -80,4 +80,19 @@
 - iPhone Safari QA, browser console/network inspection, news-feed fallback/attribution tests, notification permission states, and deployed-URL verification.
 - Migration-history reconciliation before any future migration deployment.
 
+
+## Latest all-at-once release pass — 2026-10-11
+
+- [x] Re-read all three existing CIPH checklists and inspected PR #3, the release branch, both tracked migration files, local Supabase config, live migration inventory, public table metadata, and the current Security Advisor.
+- [x] Created the focused [migration-history reconciliation checklist](CIPH_MIGRATION_HISTORY_RECONCILIATION.md) with the exact 11 live migration versions and explicit no-production-migration safety gates.
+- [x] Reconfirmed 13 of 13 public tables have RLS enabled from verbose live schema metadata.
+- [x] Reconfirmed the live username constraint allows 1–24 characters; local initial migration allows 3–24. No schema change was made.
+- [x] Reconfirmed two current Security Advisor warnings: leaked-password protection disabled, and authenticated execution of `public.create_direct_conversation(uuid)` as SECURITY DEFINER. No security policy was weakened.
+- [ ] Reconcile migration history: nine intermediate live versions have no matching local migration file; exact SQL provenance must be recovered before any migration push.
+- [ ] Complete dashboard-only Auth hardening, real inbox tests, two-account privacy tests, live feature/browser tests, mobile QA, and deployed-site verification. These require dashboard access, real accounts/inboxes, and user-device/browser testing unavailable to repository/database inspection.
+- [ ] Verify GitHub Actions on the new documentation commit and update PR #3 with the newest passing run. The checklist commit itself triggers CI; no result is claimed until the run is inspected.
+- [ ] PR #3 remains draft and must not be merged while any required launch gate remains unchecked.
+
+**Safety:** this pass made documentation-only repository changes. No production database migration, user-row edit, auth setting change, or deployment was performed.
+
 **Release decision:** not launch-ready. Never paste secrets or service-role keys into code, issues, or chat.
