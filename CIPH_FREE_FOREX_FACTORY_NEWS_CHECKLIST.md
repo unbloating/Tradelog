@@ -30,4 +30,4 @@
 ## Release evidence — 2026-10-10
 - Current main commit inspected: `7db9f9a8ddda29a05b778823de62695d26da476c`; the successful Pages workflow on main does not deploy the unmerged release PR.
 - Official Forex Factory calendar/news links are restored as optional source references beside the app's own headline feed and Investing.com calendar link.
-- Static CI for the updated release candidate is pending; feed freshness, fallback behavior, external-link behavior, notification permission states, mobile QA, and deployed URL remain unverified.
+- Static CI passed on the release PR head `fa3d49804849e5fda6a7ba79415469ef27219642` ([run 38154759965](https://github.com/unbloating/Tradelog/actions/runs/38154759965)). Because this checklist update creates a newer commit, verify the new PR-head run before merge. Feed freshness, fallback behavior, external-link behavior, notification permission states, mobile QA, and deployed URL remain unverified.
