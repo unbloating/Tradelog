@@ -57,7 +57,7 @@ Do not announce CIPH as launch-ready until the open tests below are complete.
 - [x] Live migration history lists 11 versions; repository contains two SQL migration files. The initial and cleanup filenames do not match the live version names, and nine intermediate migration files are absent locally.
 - [x] Confirmed live username constraint permits 1–24 characters while the local initial SQL declares 3–24. This remains a documented drift item, not a change request approved for production.
 - [x] Latest Security Advisor still reports leaked-password protection disabled and the authenticated direct-chat SECURITY DEFINER warning. No policies or grants were weakened.
-- [ ] Inspect the newest GitHub Actions run triggered by this checklist commit and record its result before treating static CI as current.
+- [x] Verified GitHub Actions CIPH static checks passed on the PR head `fa3d49804849e5fda6a7ba79415469ef27219642` (run [38154759965](https://github.com/unbloating/Tradelog/actions/runs/38154759965)); re-run after this checklist-only commit and verify the new head before merge.
 - [ ] Recover exact missing migration SQL and review a non-destructive reconciliation plan before any database deployment.
 - [ ] Dashboard settings, email inbox, real-account isolation, live journal/calculator/template tests, iPhone Safari QA, browser console/network inspection, and deployed URL still require hands-on verification.
 
