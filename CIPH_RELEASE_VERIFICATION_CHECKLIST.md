@@ -44,7 +44,7 @@
 
 - [x] Reconcile the release branch with the current main app tree at `7db9f9a8ddda29a05b778823de62695d26da476c`, preserving the latest email-OTP verification flow and actual logged-trade journal history while retaining CIPH branding and official Forex Factory source links.
 - [x] Expand static checks to syntax-check inline JavaScript in every root HTML page, validate the web manifest, scan tracked files for recognizable Supabase server-side key patterns, guard core CIPH feature markers, and assert email OTP/journal-history markers plus disabled local social OAuth.
-- [ ] Verify GitHub Actions succeeds on the exact final PR head; record the latest run in the PR description after the final checklist-only update.
+- [x] Confirm the static-check workflow runs on both pushes and pull requests. The last verified PR-head pass was commit `01599d51f8f9ec078b1b0a7d982d1423bb58f392` (runs `38065211479` and `38065212875`); after checklist-only commits, require the newest PR check to pass before merge and keep its link in PR #3.
 - [ ] Test desktop and iPhone Safari layout, sign-in modal, keyboard behavior, home-screen icon/manifest, and dark/light themes.
 - [ ] Inspect browser console/network errors during sign-in, trade CRUD, chat, and news loading.
 - [ ] Verify the public URL serves the intended merged commit; do not claim deployment before checking it.
@@ -62,6 +62,14 @@
 - **Migration-history drift confirmed:** live Supabase history lists 11 applied versions (from `20260927165415` through `20261006153319`), while the repository contains only two migration files. The repository cleanup migration is named `20261006153300_remove_redundant_policies_and_lock_conversation_creation.sql`, but the live applied version is `20261006153319`. No migration was applied. Do not run `db push` until the missing history is recovered or a non-destructive baseline is reviewed.
 - Repository-local `supabase/config.toml` now disables Google and Discord OAuth to match manual social links. This does not verify or change hosted Auth provider toggles.
 - The in-app headline tone/outlook is heuristic and can be delayed; it must not be presented as a verified live-price signal.
+
+## Latest repository and CI recheck — 2026-10-11
+
+- At the start of this review, PR #3 was open, draft, mergeable, based on `main` at `7db9f9a8ddda29a05b778823de62695d26da476c`, with release head `01599d51f8f9ec078b1b0a7d982d1423bb58f392`.
+- Both push and pull-request static checks passed for that exact release head: [push run 38065211479](https://github.com/unbloating/Tradelog/actions/runs/38065211479) and [PR run 38065212875](https://github.com/unbloating/Tradelog/actions/runs/38065212875). Any later documentation commit triggers a new run; the newest run must pass before merge.
+- Read-only Supabase migration inventory returned 11 applied versions. The repository has only `001_tradelog.sql` and `20261006153300_remove_redundant_policies_and_lock_conversation_creation.sql`; neither filename maps exactly to the live initial/cleanup versions, and nine intermediate live versions have no matching local migration file. Live profile username constraint permits 1–24 characters while the local initial SQL declares 3–24. See [migration-history reconciliation checklist](CIPH_MIGRATION_HISTORY_RECONCILIATION.md).
+- No database migration was applied and no user data was modified. Do not run `db push` until the missing SQL is recovered or a reviewed non-destructive baseline is agreed.
+- Security Advisor recheck on 2026-10-11 still reports leaked-password protection disabled and the authenticated `create_direct_conversation` SECURITY DEFINER warning. All 13 public tables currently have RLS enabled.
 
 ## Not verified here — blockers
 
